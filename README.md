@@ -24,7 +24,7 @@ $ mkdir -p build && cd build
 $ cmake .. && make -j
 ```
 
-### Building HNSW-PEOs Index (only once)
+### Building PEOs Index (only once)
 
 ```bash
 $ bash run_XXX.sh
