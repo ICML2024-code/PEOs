@@ -787,7 +787,7 @@ namespace hnswlib {
                             char_pointer += 16;
 									
 						}
-						
+						_mm512_store_ps(Thres1, sum1);	
                         //---------------------------------------------------
 
 						for(int i = 0; i < div; i++){
