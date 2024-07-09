@@ -36,8 +36,6 @@
 #include <vector>
 #include <iostream>
 #include <string.h>
-//#include <boost/random.hpp>
-//#include <boost/random/normal_distribution.hpp>
 
 struct Elem{
   unsigned int id;
@@ -86,17 +84,12 @@ namespace hnswlib {
     class AlgorithmInterface {
     public:
         virtual void addPoint(const void *datapoint, labeltype label, float* norm)=0;
-		virtual void Boost(int i, Elem* nearest_neighbor, Elem* sorted_neighbor, int Msize)=0;
-        virtual void AddEdge(int i, int* rst, int rst_size)=0;		
-		virtual void MRNG(int cur_id, Elem* cur_nearest_neighbor, Elem* cur_sorted_neighbor, Elem** nearest_neighbor, Elem** sorted_neighbor, int* rst, int* Msize, int* rst_size)=0;
-		
 		virtual void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, float* tmp_res, float*, int vecdim_, float* max_norm2, float* max_adjust, float* max_res,float*, unsigned short int* norm_quan, float* val, bool* is_zero, bool* is_edge)=0;
 		virtual void addEdgeNorm(int id, float* tmp_norm2, float*, float*, float*, float diff2, float, float, float, bool*)=0;
         virtual void CalcEdgeNorm(int id, int vecdim, double* edge_norm, size_t* count);
 		virtual void CalcEdgeVariance(double* norm2, int vecdim_, int data_size, double* avg);
         virtual void PermuteVec(int id, float** vec, int vecdim);
         virtual void Calc_wres(size_t edge_count, int vecdim0, int vecdim_, int data_size, int level);	
-
         virtual void find_neighbors(size_t vecdim_, float** train_org, int ind, int* count, float** data);		
 		
 		virtual void compression(int vecsize, int vecdim,  bool* is_zero)=0;

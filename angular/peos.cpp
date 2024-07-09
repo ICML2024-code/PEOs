@@ -55,9 +55,9 @@ struct k_elem{
 	float dist;
 };
 
-int QsortComp(				// compare function for qsort
-	const void* e1,						// 1st element
-	const void* e2)						// 2nd element
+int QsortComp(				
+	const void* e1,					
+	const void* e2)				
 {
 	int ret = 0;
 	k_elem* value1 = (k_elem *) e1;
@@ -202,15 +202,11 @@ float compare2(const float* a, const float* b, unsigned size) {
 	return (res);
 }
 
-
 static void
 get_gt(unsigned int *massQA, float *massQ, float *mass, size_t vecsize, size_t qsize, L2Space &l2space,
        size_t vecdim, vector<std::priority_queue<std::pair<float, labeltype >>> &answers, size_t k) {
-
-
     (vector<std::priority_queue<std::pair<float, labeltype >>>(qsize)).swap(answers);
     DISTFUNC<float> fstdistfunc_ = l2space.get_dist_func();
-    //cout << qsize << "\n";
     for (int i = 0; i < qsize; i++) {
         for (int j = 0; j < k; j++) {
             answers[i].emplace(0.0f, massQA[100 * i + j]);
@@ -225,22 +221,16 @@ test_approx(float *massQ, size_t vecsize, size_t qsize, HierarchicalNSW<float> &
 			float* query_rot, float** query_lsh, int* permutation, int table_size) {
     size_t correct = 0;
     size_t total = 0;
-    //uncomment to test in parallel mode:
-    //#pragma omp parallel for
-
-    //appr_alg.query_rot(vecdim, qsize, massQ, R);
 
     for (int i = 0; i < qsize; i++) {
         unsigned int* result = new unsigned int[k];
 		float* tmp = massQ + vecdim * i;
-
-        
+      
         for(int j = 0; j < vecdim; j++){
 			int x = permutation[j];
 			query_rot[j] = tmp[x];
 		}
-        
-		
+        	
         appr_alg.searchKnn(query_rot, k, result, lsh_vec, thres_pos, query_lsh, table_size);	
 		
         std::priority_queue<std::pair<float, labeltype >> gt(answers[i]);
@@ -268,12 +258,7 @@ static void
 test_vs_recall(float *massQ, size_t vecsize, size_t qsize, HierarchicalNSW<float> &appr_alg, size_t vecdim,
                vector<std::priority_queue<std::pair<float, labeltype >>> &answers, size_t k, float*** lsh_vec, float* thres_pos, float* query_rot, float** query_lsh, int* permutation, int table_size) {
     vector<size_t> efs;// = { 10,10,10,10,10 };
-    	
-/*
-    for (int i = 10; i < 100; i += 10) {
-        efs.push_back(i);
-    }
-*/ 
+    	 
     for (int i = 100; i < 5000; i += 25) {
         efs.push_back(i);
     }
@@ -282,11 +267,7 @@ test_vs_recall(float *massQ, size_t vecsize, size_t qsize, HierarchicalNSW<float
         appr_alg.setEf(ef);
         StopW stopw = StopW();
 
-	//	auto e = std::chrono::high_resolution_clock::now(); // newly added
         float recall = test_approx(massQ, vecsize, qsize, appr_alg, answers, k, lsh_vec,  thres_pos, vecdim, query_rot, query_lsh, permutation, table_size);
-	//		auto s = std::chrono::high_resolution_clock::now(); //newly added
-	//		std::chrono::duration<double> diff = e - s;  //newly added 
-		//   std::cout << "search time: " << diff.count() << "\n";  //newly added 
 		
         float time_us_per_query = stopw.getElapsedTimeMicro() / qsize;
 
@@ -303,9 +284,9 @@ inline bool exists_test(const std::string &name) {
     return f.good();
 }
 
-float uniform(						// r.v. from Uniform(min, max)
-	float min,							// min value
-	float max)							// max value
+float uniform(						
+	float min,							
+	float max)							
 {
 	if (min > max) {printf("input error\n"); exit(0);}
 
@@ -331,15 +312,13 @@ float gaussian(						// r.v. from Gaussian(mean, sigma)
 	u2 = uniform(0.0f, 1.0f);
 	
 	float x = mu + sigma * sqrt(-2.0f * log(u1)) * cos(2.0f * PI * u2);
-	//float x = mu + sigma * sqrt(-2.0f * log(u1)) * sin(2.0f * PI * u2);
 	return x;
 }
 
 float calc_quantile(float expectation, float variance, float thres){
     boost::math::normal_distribution<> normal(expectation, variance);
-    return boost::math::quantile(normal, 1 - thres);	 //lambda	
+    return boost::math::quantile(normal, 1 - thres);		
 }
-
 
 void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table_size, char* path_q_, char* path_data_, char* truth_data_, int L_, float eps_, int topk_) {
 
@@ -354,7 +333,7 @@ void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table
 	float init_val = 1.0f / table_size;
 	size_t true_vecdim = dim_;
     char path_index[1024];
-    //char path_gt[1024];
+	
     char *path_q = path_q_;
     char *path_data = path_data_;
     sprintf(path_index, "index.bin");
@@ -386,13 +365,9 @@ void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table
 		thres_pos[i] = new float[step];
 	}
 	
-	
 	float min_norm0, max_norm0, diff0;
 	
 	float coeff = sqrt(2 * log(m) * LSH_level);
-  
-	//---------------------------------------------------------------------------
-	//------------------------------------------------------------------------------
 
     float *massb = new float[vecdim];
 
@@ -436,7 +411,7 @@ void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table
     L2Space l2space(vecdim);
 	InnerProductSpace ipsubspace(vecdim0);
 	InnerProductSpace LSHsubspace(LSH_vecdim0);
-	InnerProductSpace ipspace(vecdim);  //new
+	InnerProductSpace ipspace(vecdim);  
     int* permutation = new int[vecdim];	
 
 	float read_diff2;	
@@ -444,17 +419,15 @@ void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table
     HierarchicalNSW<float> *appr_alg;
     if (exists_test(path_index)) {
         cout << "Loading index from " << path_index << ":\n";
-		
-		
+			
 		ifstream input2("ProjInfo", ios::binary);
-
 
 		input2.read((char*)(&read_diff2), sizeof(float));	
 		
 	    for(int j = 0; j < LSH_level; j++){
-		for(int i = 0; i < m; i++){
-            input2.read((char*) LSH_vec[j][i] , sizeof(float) * LSH_vecdim0);
-		}	
+		    for(int i = 0; i < m; i++){
+                input2.read((char*) LSH_vec[j][i] , sizeof(float) * LSH_vecdim0);
+		    }	
 		}		
 		
 		input2.read((char*)(permutation), sizeof(int) * vecdim);
@@ -466,7 +439,7 @@ void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table
         cout << "Actual memory usage: " << getCurrentRSS() / 1000000 << " Mb \n";
     } else {
         cout << "Building index:\n";	
-//--------------load the dataset----------------------
+
         float** vec = new float*[vecsize];
 	    for(int i = 0; i < vecsize; i++)
 		    vec[i] = new float[vecdim];
@@ -484,7 +457,6 @@ void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table
 			}
 	    }
 
-//----------------compute norms--------------------
         unsigned short int* norm_quan = new unsigned short int[vecsize];			
 		float* norm = new float[vecsize];
         float* true_norm = new float[vecsize];		
@@ -511,7 +483,6 @@ void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table
 			}		
 		}
 		
-		//printf("max_norm = %f, min_norm = %f\n", max_norm0*2, min_norm0*2);
 		int interval = 256*256;
 		unsigned short int b;
 
@@ -530,18 +501,17 @@ void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table
 						
         appr_alg = new HierarchicalNSW<float>(m, diff0, level, vecdim0, LSH_level, LSH_vecdim0, &l2space, &ipsubspace, &ipspace, &LSHsubspace, vecsize, M, efConstruction);
 
-//---------------compute projected values-------------------------	
-    for(int j = 0; j < thres_num; j++){
-		thres = 1 - (0.05 * (j + 1));
-        for(int i = 0; i < step; i++){   //skip revision
-		    float val = i * init_val;
-		    thres_pos[j][i] = calc_quantile(val*coeff, 1- (val * val), thres);
+        for(int j = 0; j < thres_num; j++){
+		    thres = 1 - (0.05 * (j + 1));
+            for(int i = 0; i < step; i++){   
+		        float val = i * init_val;
+		        thres_pos[j][i] = calc_quantile(val*coeff, 1- (val * val), thres);
 
-			if(i == 0) thres_pos[j][i] = -100000000;
-			if(i == step-1) thres_pos[j][i] = 100000000;	
-	
+			    if(i == 0) thres_pos[j][i] = -100000000;
+			    if(i == step-1) thres_pos[j][i] = 100000000;		
+	        }	
 	    }	
-	}	
+	
 		for(int i = 0; i < LSH_level; i++){ 
 	        for(int j = 0; j < m; j++){		
 		        for(int l = 0; l < LSH_vecdim0; l++){
@@ -550,8 +520,6 @@ void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table
 	        }
 		}
 	
-//-----------------------------------------------------------------
-
         appr_alg->addPoint((void *) vec[0], (size_t) 0, &(norm[0]));
 	
         int j1 = 0;
@@ -561,7 +529,6 @@ void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table
 
 #pragma omp parallel for schedule(dynamic)
         for (int i = 1; i < vecsize; i++) {
-	    //float* mass = new float[vecdim];
             int j2=0;
 #pragma omp critical
             {								
@@ -578,13 +545,10 @@ void PEOs(int efc_, int M_, int data_size_, int query_size_, int dim_, int table
         }
 		cout << "HNSW Build time:" << 1e-6 * stopw_full.getElapsedTimeMicro() << "  seconds\n";
 
-//--------------------rotation------------------------------------
-
-StopW stopw_rotation = StopW();
+        StopW stopw_rotation = StopW();
 
         double* norm2 = new double[vecdim];
-		//double* avg_norm = new double[vecdim];
-		
+
 		k_elem* sort_arr = new k_elem[vecdim];
 		k_elem* cur_sum = new k_elem[level];
 		for(int i = 0; i < level; i++){
@@ -611,8 +575,7 @@ StopW stopw_rotation = StopW();
 				edge_norm[i][j] = 0;
 			}
 		}
-		
-		
+				
 #pragma omp parallel for schedule(dynamic)
 		for(int i = 0; i < vecsize; i++){ 
 	        appr_alg->CalcEdgeNorm(i, vecdim, edge_norm[i], &(edge_size[i]));
@@ -627,7 +590,6 @@ StopW stopw_rotation = StopW();
 			}				
 	    }
 		
-		//----------test permutation start-----------------
         for(int i = 0; i < level; i++){
 			int ss = i * vecdim0;
 			double ssum = 0;
@@ -635,8 +597,6 @@ StopW stopw_rotation = StopW();
 				ssum += norm2[ ss + j];
 		    }
 		}		
-		//----------test permutation end-------------------
-
 		
 		for(int i = 0; i < vecdim; i++){
 			sort_arr[i].id = i;
@@ -712,28 +672,20 @@ StopW stopw_rotation = StopW();
 				if(permutation[j] == i){
 					count_++;
 				}				
-			}
-			if(count_ != 1){
-				printf("error count = %d, count_\n");
-				exit(0);
-			}
-			
+			}			
 		}
 
-
 #pragma omp parallel for schedule(dynamic)
-    for(int i = 0; i < vecsize; i++)			
-		appr_alg->PermuteVec(i, vec, vecdim);
+        for(int i = 0; i < vecsize; i++)			
+		    appr_alg->PermuteVec(i, vec, vecdim);
 
-    for(int i = 0; i < vecsize; i++) {delete[] edge_norm[i];}
+        for(int i = 0; i < vecsize; i++) {delete[] edge_norm[i];}
 	
-	delete[] edge_norm;
-	delete[] edge_size;
+	    delete[] edge_norm;
+	    delete[] edge_size;
 
-    cout << "Rotation time:" << 1e-6 * stopw_rotation.getElapsedTimeMicro() << "  seconds\n";
+        cout << "Rotation time:" << 1e-6 * stopw_rotation.getElapsedTimeMicro() << "  seconds\n";
 	
-	//appr_alg->Calc_wres(edge_count, vecdim0, vecdim, vecsize, level);
-
         StopW stopw_full2 = StopW();
 
 		float** tmp_norm2 = new float*[vecsize];
@@ -766,12 +718,8 @@ StopW stopw_rotation = StopW();
 		
 		j1 = 0;
 		
-		//-------test------------------
 		float* test_val = new float[vecsize];
 		for(int i = 0; i < vecsize; i++) test_val[i] = 0;
-		//------------------------------
-		
-        //StopW stopw_full2 = StopW();		
 
 #pragma omp parallel for schedule(dynamic)
 	    for (int i = 0; i < vecsize; i++){
@@ -780,58 +728,40 @@ StopW stopw_rotation = StopW();
             {								
                 j1++;
                 j2=j1;
-             //   if (j1 % report_every == 0) {
-             //       printf("j1 = %d\n", j1);
-             //   }
             }
 			
 	        appr_alg->addProjVal(i, LSH_vec, tmp_norm2[i], tmp_adjust[i], tmp_res[i], tmp_last[i], vecdim, &(max_norm2[i]), &(max_adjust[i]), &(max_res[i]), &(max_last[i]), norm_quan, &(test_val[i]), &(is_zero[i]), is_edge[i]);
 	    }
 
-        //float tol_max_norm = max_norm[0]; 
 		float tol_max_norm2 = max_norm2[0];
         float tol_max_adjust = max_adjust[0]; 
 		float tol_max_res = max_res[0];	
         float tol_max_last = max_last[0];			
 		
-		
         for(int i = 1; i < vecsize; i++){
-            //if(max_norm[i] > tol_max_norm) {tol_max_norm = max_norm[i];}  
             if(max_norm2[i] > tol_max_norm2) {tol_max_norm2 = max_norm2[i];}
             if(max_adjust[i] > tol_max_adjust) {tol_max_adjust = max_adjust[i];}  
             if(max_res[i] > tol_max_res) {tol_max_res = max_res[i];}
-            if(max_last[i] > tol_max_last) {tol_max_last = max_last[i];}			
- 			
+            if(max_last[i] > tol_max_last) {tol_max_last = max_last[i];}				
 		}
 		
-		//delete[] max_norm;
 		delete[] max_norm2;
 
         int interval0 = 32767;
-        //float diff = (tol_max_norm - 0) / (interval - 1);
 		float diff2 = (tol_max_norm2 - 0) / (interval - 1);
 		float diffadj = (tol_max_adjust - 0) / (interval0 - 1);
 		float diffres = (tol_max_res - 0) / (interval - 1);
 		float difflast = (tol_max_last - 0) / (interval0 - 1);
 
-        //printf("first min = %f, max = %f\n", min_norm0, max_norm0);
-        //printf("second min = %f, max = %f\n", tol_min_norm, tol_max_norm);
-
-        //exit(0);
 	    for (int i = 0; i < vecsize; i++){
 	        appr_alg->addEdgeNorm(i, tmp_norm2[i], tmp_adjust[i], tmp_res[i], tmp_last[i], diff2, diffadj, diffres, difflast, is_edge[i]);
 	    }	
 
-//---------------------compression-------
-
 	    appr_alg->compression(vecsize, vecdim, is_zero);
-	    	
-//----------------------------------------------		
-		
+	    		
         input.close();
         cout << "Projection time:" << 1e-6 * stopw_full2.getElapsedTimeMicro() << "  seconds\n";
-		
-		
+				
 		read_diff2 = diff2;
 		
         appr_alg->saveIndex(path_index, read_diff2);
@@ -845,7 +775,6 @@ StopW stopw_rotation = StopW();
 	            output.write((char*)(LSH_vec[j][i]), sizeof(float) * LSH_vecdim0);
 		    }
 		}		
-
 	
         for(int j = 0; j < level; j++){
 	        output.write((char*)(id_arr[j]), sizeof(int) * vecdim0);
@@ -853,21 +782,15 @@ StopW stopw_rotation = StopW();
 	
 	    for(int j = 0; j < thres_num; j++)
 		output.write((char*)(thres_pos[j]), sizeof(float) * step);		
-		//output.write((char*)(thres_neg), sizeof(float) * step);
 	
-        //output.write((char *) R, 4 * vecdim * vecdim);	
 		output.close();
 		printf("Indexing finished\n");
 		exit(0);
     }
 
-
     vector<std::priority_queue<std::pair<float, labeltype >>> answers;
     size_t k = topk_;
-   // cout << "Parsing gt:\n";
     get_gt(massQA, massQ, mass, vecsize, qsize, l2space, vecdim, answers, k);
-   // cout << "Loaded gt\n";
-
 	
 	float* query_rot = new float[vecdim];
 	
@@ -882,6 +805,4 @@ StopW stopw_rotation = StopW();
     for (int i = 0; i < 1; i++)
         test_vs_recall(massQ, vecsize, qsize, *appr_alg, vecdim, answers, k, LSH_vec, thres_pos[eps], query_rot, query_lsh, permutation, table_size);
     return;
-
-
 }
