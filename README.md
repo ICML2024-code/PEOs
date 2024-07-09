@@ -35,3 +35,7 @@ $ bash run_XXX.sh
 ```bash
 $ bash run_XXX.sh
 ```
+
+### Parameter
+
+The parmeter M in HNSW is fixed to 32.
