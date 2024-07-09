@@ -81,9 +81,6 @@ namespace hnswlib {
     class AlgorithmInterface {
     public:
         virtual void addPoint(const void *datapoint, labeltype label, float* norm)=0;
-		virtual void Boost(int* new_edge, int* new_size)=0;
-        virtual void Add_Edge(int* new_edge, int new_size)=0;		
-		
 		virtual void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, float* tmp_res, float*, int vecdim_, float* max_norm2, float* max_adjust, float* max_res,float*, unsigned short int* norm_quan, float* val, bool* is_zero, bool* is_edge)=0;
 		virtual void addEdgeNorm(int id, float* tmp_norm2, float*, float*, float*, float diff2, float, float, float, bool*)=0;
         virtual void CalcEdgeNorm(int id, int vecdim, double* edge_norm, size_t* count);

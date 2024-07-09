@@ -39,48 +39,53 @@ int Elem_comp2(				// compare function for qsort
 	return ret;
 }
 
-        struct Neighbor {
-            unsigned id;
-            float distance;
-			float ip;
-            bool flag;
+struct Neighbor {
+    unsigned id;
+    float distance;
+	float ip;
+    bool flag;
 	
-            Neighbor() = default;
-            Neighbor(unsigned id, float distance, float ip, bool f) : id{id}, distance{distance}, ip{ip}, flag(f) {}
+    Neighbor() = default;
+    Neighbor(unsigned id, float distance, float ip, bool f) : id{id}, distance{distance}, ip{ip}, flag(f) {}
 
-            inline bool operator<(const Neighbor &other) const {
-                return distance < other.distance;
-            }
-        };
+    inline bool operator<(const Neighbor &other) const {
+        return distance < other.distance;
+    }
+};
 
-        static inline int InsertIntoPool (Neighbor *addr, unsigned K, Neighbor nn) {
-		
-            int left=0,right=K-1;
-            if(addr[left].distance>nn.distance){
-                memmove((char *)&addr[left+1], &addr[left],K * sizeof(Neighbor));
-                addr[left] = nn;
-                return left;
-            }
-            if(addr[right].distance<nn.distance){
-                addr[K] = nn;
-                return K;
-            }
-            while(left<right-1){
-                int mid=(left+right)/2;
-                if(addr[mid].distance>nn.distance)right=mid;
-                else left=mid;
-            }
+static inline int InsertIntoPool (Neighbor *addr, unsigned K, Neighbor nn) {		
+    
+	int left=0,right=K-1;
+	
+    if(addr[left].distance>nn.distance){
+        memmove((char *)&addr[left+1], &addr[left],K * sizeof(Neighbor));
+        addr[left] = nn;
+        return left;
+    }
+	
+    if(addr[right].distance<nn.distance){
+        addr[K] = nn;
+        return K;
+    }
+	
+    while(left<right-1){
+        int mid=(left+right)/2;
+        if(addr[mid].distance>nn.distance)right=mid;
+        else left=mid;
+    }
  
-            while (left > 0){
-                if (addr[left].distance < nn.distance) break;
-                if (addr[left].id == nn.id) return K + 1;
-                left--;
-            }
-            if(addr[left].id == nn.id||addr[right].id==nn.id)return K+1;
-            memmove((char *)&addr[right+1], &addr[right],(K-right) * sizeof(Neighbor));
-            addr[right]=nn;
-            return right;
-        }
+    while (left > 0){
+        if (addr[left].distance < nn.distance) break;
+        if (addr[left].id == nn.id) return K + 1;
+        left--;
+    }
+            
+    if(addr[left].id == nn.id||addr[right].id==nn.id)return K+1;
+    
+	memmove((char *)&addr[right+1], &addr[right],(K-right) * sizeof(Neighbor));
+    addr[right]=nn;
+    return right;
+}
 
 namespace hnswlib {
     typedef unsigned int tableint;
@@ -135,7 +140,7 @@ namespace hnswlib {
             level_generator_.seed(random_seed);
             update_probability_generator_.seed(random_seed + 1);
 
-            size_links_level0_ = maxM0_ * (4 * sizeof(unsigned short int) + sizeof(tableint) + LSH_level_) + sizeof(linklistsizeint);   //new
+            size_links_level0_ = maxM0_ * (4 * sizeof(unsigned short int) + sizeof(tableint) + LSH_level_) + sizeof(linklistsizeint);  
             size_data_per_element_ = size_links_level0_ + data_size_ + sizeof(labeltype) + sizeof(float); 
             offsetData_ = size_links_level0_;
             label_offset_ = size_links_level0_ + data_size_ + sizeof(float);
@@ -149,7 +154,6 @@ namespace hnswlib {
 
             visited_list_pool_ = new VisitedListPool(1, max_elements);
 
-            //initializations for special treatment of the first node
             enterpoint_node_ = -1;
             maxlevel_ = -1;
 
@@ -169,7 +173,6 @@ namespace hnswlib {
         };
 
         ~HierarchicalNSW() {
-
             free(data_level0_memory_);
             for (tableint i = 0; i < cur_element_count; i++) {
                 if (element_levels_[i] > 0)
@@ -221,7 +224,6 @@ namespace hnswlib {
         double mult_, revSize_;
         int maxlevel_;
 
-
         VisitedListPool *visited_list_pool_;
         std::mutex cur_element_count_guard_;
 
@@ -235,13 +237,9 @@ namespace hnswlib {
         size_t size_links_level0_;
         size_t offsetData_, offsetLevel0_;
 
-        //--------new parameters--------------
         size_t size_data_per_element16_;
 		size_t size_data_per_element32_;
 		size_t size_data_per_element48_;
-		
-		//size_t label_offset16_;
-		//size_t label_offset32_;
 		
 		size_t sec_part_;
 		
@@ -258,8 +256,6 @@ namespace hnswlib {
 		char* data_level0_memory48_;
 		char* data_level0_memory64_;
 
-       //---------------------------------------
-
         char *data_level0_memory_;
 		char *vec_level0_memory_;
         char **linkLists_;
@@ -272,9 +268,7 @@ namespace hnswlib {
 		DISTFUNC<dist_t> fstipfunc_;
 		DISTFUNC<dist_t> fstPQfunc_;
 		DISTFUNC<dist_t> fstLSHfunc_;
-		
-		//size_t m;
-		
+			
         void *dist_func_param_;
 		void *subip_func_param_;
 		void *LSHip_func_param_;
@@ -434,28 +428,24 @@ namespace hnswlib {
 			char* data2 = (char*) data;
 			data2 += maxM0_ * (sizeof(int) + 4 * sizeof(unsigned short int) + level) + i;
 			return (unsigned char* )data2;
-            //return (data_level0_memory_ + internal_id * size_data_per_element_ + offsetData_);
         }
 
         inline unsigned char* getLSHM16(int* data, int level, int i) const {
 			char* data2 = (char*) data;
 			data2 += 16 * (sizeof(int) + 4 * sizeof(unsigned short int) + level) + i;
 			return (unsigned char* )data2;
-            //return (data_level0_memory_ + internal_id * size_data_per_element_ + offsetData_);
         }
 
         inline unsigned char* getLSHM32(int* data, int level, int i) const {
 			char* data2 = (char*) data;
 			data2 += maxM_ * (sizeof(int) + 4 * sizeof(unsigned short int) + level) + i;
 			return (unsigned char* )data2;
-            //return (data_level0_memory_ + internal_id * size_data_per_element_ + offsetData_);
         }		
 
         inline unsigned char* getLSHM48(int* data, int level, int i) const {
 			char* data2 = (char*) data;
 			data2 += 48 * (sizeof(int) + 4 * sizeof(unsigned short int) + level) + i;
 			return (unsigned char* )data2;
-            //return (data_level0_memory_ + internal_id * size_data_per_element_ + offsetData_);
         }
 		
         inline char *getNormByInternalIdQuery(tableint internal_id) const {
@@ -577,7 +567,6 @@ namespace hnswlib {
             vl_type *visited_array = vl->mass;
             vl_type visited_array_tag = vl->curV;
 
-            //-------------------------------------
 			int LL = ef;
             std::vector<Neighbor> retset(LL + 1);
             
@@ -586,23 +575,21 @@ namespace hnswlib {
 			float square_q = fstipfunc_(data_point, data_point, dist_func_param_);
 	
 			float* x = (float *) data_point;
-			    for(int j = 0; j < LSH_level_; j++){
-				    float* y = x + j * LSH_vecdim0_;
-                    for(int i = 0; i < m_; i++){
-				        _mm_prefetch((char *) (lsh_vec[j][i]), _MM_HINT_T0);
-				        query_lsh[j][i] = fstLSHfunc_( (void*) y, (void*) lsh_vec[j][i], LSHip_func_param_);
-                        query_lsh[j][i + m_] = -1.0f * query_lsh[j][i];
-                    }
-			    }	
+			for(int j = 0; j < LSH_level_; j++){
+				float* y = x + j * LSH_vecdim0_;
+                for(int i = 0; i < m_; i++){
+				    _mm_prefetch((char *) (lsh_vec[j][i]), _MM_HINT_T0);
+				    query_lsh[j][i] = fstLSHfunc_( (void*) y, (void*) lsh_vec[j][i], LSHip_func_param_);
+                    query_lsh[j][i + m_] = -1.0f * query_lsh[j][i];
+                }
+			}	
 				
 			char* norm_pointer0 = getNormByInternalIdQuery(ep_id);
 			float true_norm0 = *((float*) norm_pointer0); 
 			norm_pointer0 += 4;
 			float ip0 = fstipfunc_(data_point, norm_pointer0, dist_func_param_);
 			float dist0 = true_norm0 * ( true_norm0 * 0.5 - ip0);
-             
-			
-		
+
             retset[0] = Neighbor(ep_id, dist0, ip0, true);
             visited_array[ep_id] = visited_array_tag; 
 
@@ -711,7 +698,6 @@ namespace hnswlib {
 						float val = retset[LL-1].distance; 
 						float qcosine = retset[k].ip;
 						float Lbound = qcosine * diffadj_;
-						//float res_val = qcosine * diffres_;
 						
 						float qsine = sqrt(square_q - (qcosine * qcosine));
 						float ss = qsine * ss0;						
@@ -722,10 +708,7 @@ namespace hnswlib {
                         int LB = 1;
                         int UB = table_size - 1;
                         int step1 = table_size - 1;						
-						
-//-------------------------------estimation part--------------------------------
-                        //--------------------------------------------------
-						
+							
 						int div = size % 16;
 						int round;
 						if(div == 0){
@@ -741,709 +724,652 @@ namespace hnswlib {
                         __m512 v_float, temp_sub, temp_center;
 						temp_sub = _mm512_set1_ps(val);
 						temp_center = _mm512_set1_ps(Lbound);
-						//temp_res  = _mm512_set1_ps(res_val);
                         __m512 sum1, sum2, sum3, sum4;
 
 			            __m512 diff_1, diff_3;								
 			            diff_1 = _mm512_set1_ps(diff_);
                         diff_3 = _mm512_set1_ps(ss);
-                    if(round == 1){
-						unsigned short int* short_pointer = (unsigned short int*) (datal + 16);
+                    
+                        if(round == 1){
+                            unsigned short int* short_pointer = (unsigned short int*) (datal + 16);
 
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//1st
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						sum1 = _mm512_mul_ps(v_float, diff_1);
-						sum1 = _mm512_sub_ps(sum1, temp_sub);
+                            v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+                            v_int = _mm512_cvtepu16_epi32(v_short);
+                            v_float = _mm512_cvtepi32_ps(v_int);
+                            sum1 = _mm512_mul_ps(v_float, diff_1);
+                            sum1 = _mm512_sub_ps(sum1, temp_sub);
 	
-						short_pointer += 16;
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//adjust norm
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, temp_center);
-						sum1 = _mm512_sub_ps(sum1, v_float);
+                            short_pointer += 16;
+                            v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+                            v_int = _mm512_cvtepi16_epi32(v_short);
+                            v_float = _mm512_cvtepi32_ps(v_int);
+                            v_float = _mm512_mul_ps(v_float, temp_center);
+                            sum1 = _mm512_sub_ps(sum1, v_float);
 						
-						short_pointer += 16;   					
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//3rd
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, diff_3);	
-                        sum1 = _mm512_div_ps(sum1, v_float);
-						short_pointer += 16;
+                            short_pointer += 16;   					
+                            v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+                            v_int = _mm512_cvtepu16_epi32(v_short);
+                            v_float = _mm512_cvtepi32_ps(v_int);
+                            v_float = _mm512_mul_ps(v_float, diff_3);	
+                            sum1 = _mm512_div_ps(sum1, v_float);
+                            short_pointer += 16;
 												
-						//_mm512_store_ps(Thres1, sum1);
-	//-------------------------LSH part---------------------------------------	
-						//-------------compute LSH code---------------
-						_mm_prefetch((char *) (thres_pos), _MM_HINT_T0);						
+                            _mm_prefetch((char *) (thres_pos), _MM_HINT_T0);
 						
-						v_int = _mm512_cvtps_epi32(sum1);
-						__mmask16 k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
-						__m512i neg = _mm512_setzero_epi32();
+						    v_int = _mm512_cvtps_epi32(sum1);
+						    __mmask16 k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
+						    __m512i neg = _mm512_setzero_epi32();
 						
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
 						
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
-						neg = _mm512_set1_epi32(step1);
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
+						    neg = _mm512_set1_epi32(step1);
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
 						
-						sum1 = _mm512_i32gather_ps(v_int, thres_pos, 4);//
+						    sum1 = _mm512_i32gather_ps(v_int, thres_pos, 4);
 
-                        __m512 v_tmp = _mm512_set1_ps(qsine);  //new1
-						sum1 = _mm512_mul_ps(sum1, v_tmp);
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//last
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_tmp = _mm512_set1_ps(coff2);
-						v_float = _mm512_mul_ps(v_float, v_tmp);
-                        sum1 = _mm512_add_ps(sum1, v_float);						
-						short_pointer += 16;
-					
-						//---------------------------------------------------------
-						//-------------compute LSH code---------------
+                            __m512 v_tmp = _mm512_set1_ps(qsine);  
+						    sum1 = _mm512_mul_ps(sum1, v_tmp);
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_tmp = _mm512_set1_ps(coff2);
+						    v_float = _mm512_mul_ps(v_float, v_tmp);
+                            sum1 = _mm512_add_ps(sum1, v_float);						
+						    short_pointer += 16;
                                 
-						unsigned char* char_pointer = (unsigned char*) short_pointer;
+						    unsigned char* char_pointer = (unsigned char*) short_pointer;
 						
-						//-------------LSH first codebook-----------------------
-					
-                        for(int i = 0; i < LSH_level_; i++){
-                            float* lsh_pointer = query_lsh[i];
+                            for(int i = 0; i < LSH_level_; i++){
+                                float* lsh_pointer = query_lsh[i];
 
-
-						    _mm_prefetch((char *) (lsh_pointer), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 64), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 128), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 192), _MM_HINT_T0);
-
-
+						        _mm_prefetch((char *) (lsh_pointer), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 64), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 128), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 192), _MM_HINT_T0);
 									
-                            v_char = _mm_loadu_si128((__m128i*) char_pointer); 
-							v_int = _mm512_cvtepu8_epi32(v_char);
-					        v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+                                v_char = _mm_loadu_si128((__m128i*) char_pointer); 
+							    v_int = _mm512_cvtepu8_epi32(v_char);
+					            v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						        sum1 = _mm512_sub_ps(sum1, v_float);
+                                char_pointer += 16;									
+						    }
+						
+                            _mm512_store_ps(Thres1, sum1);
+						
+						    for(int i = 0; i < div; i++){
+							    if(Thres1[i] <= 0){
+                                    real_data[count] = datal[i];
+								    count++;
+							    }
+						    }
+						
+					    }
+                    
+					    else if(round == 2){
+                            unsigned short int* short_pointer = (unsigned short int*) (datal + 32);
+									
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    sum1 = _mm512_mul_ps(v_float, diff_1);
+						    sum1 = _mm512_sub_ps(sum1, temp_sub);
+	
+						    short_pointer += 16;
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, temp_center);
 						    sum1 = _mm512_sub_ps(sum1, v_float);
-                            char_pointer += 16;
-									
-						}
-					_mm512_store_ps(Thres1, sum1);	
-                        //---------------------------------------------------
-
-						for(int i = 0; i < div; i++){
-							if(Thres1[i] <= 0){
-                                real_data[count] = datal[i];
-								count++;
-							}
-						}
 						
-					}
-                    else if(round == 2){
-                        unsigned short int* short_pointer = (unsigned short int*) (datal + 32);
-									
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//1st
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						sum1 = _mm512_mul_ps(v_float, diff_1);
-						sum1 = _mm512_sub_ps(sum1, temp_sub);
+						    short_pointer += 16;   					
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, diff_3);	
+                            sum1 = _mm512_div_ps(sum1, v_float);
+						    short_pointer += 16;
+						
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    sum2 = _mm512_mul_ps(v_float, diff_1);
+						    sum2 = _mm512_sub_ps(sum2, temp_sub);	
 	
-						short_pointer += 16;
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//adjust norm
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, temp_center);
-						sum1 = _mm512_sub_ps(sum1, v_float);
-						
-						short_pointer += 16;   					
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//3rd
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, diff_3);	
-                        sum1 = _mm512_div_ps(sum1, v_float);
-						short_pointer += 16;
-						
-						//_mm512_store_ps(Thres1, sum1);
-	//----------------------------------------------------------------					
-//----------------------------------------------------------
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//1st
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						sum2 = _mm512_mul_ps(v_float, diff_1);
-						sum2 = _mm512_sub_ps(sum2, temp_sub);	
-	
-						short_pointer += 16;
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//adjust norm
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, temp_center);
-						sum2 = _mm512_sub_ps(sum2, v_float);
-						
-						short_pointer += 16;   					
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//3rd
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, diff_3);	
-                        sum2 = _mm512_div_ps(sum2, v_float);
-						short_pointer += 16;
-						
-						//_mm512_store_ps(Thres2, sum2);
-	//----------------------------------------------------------------
-						//-------------compute LSH code---------------
-						_mm_prefetch((char *) (thres_pos), _MM_HINT_T0);						
-						
-						v_int = _mm512_cvtps_epi32(sum1);
-						__mmask16 k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
-						__m512i neg = _mm512_setzero_epi32();
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
-						neg = _mm512_set1_epi32(step1);
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						sum1 = _mm512_i32gather_ps(v_int, thres_pos, 4);//----
-						
-                        __m512 v_tmp = _mm512_set1_ps(qsine);   //new1
-						sum1 = _mm512_mul_ps(sum1, v_tmp);
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//last
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_tmp = _mm512_set1_ps(coff2);
-						v_float = _mm512_mul_ps(v_float, v_tmp);
-                        sum1 = _mm512_add_ps(sum1, v_float);						
-						short_pointer += 16;						
-
-						v_int = _mm512_cvtps_epi32(sum2);
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
-						neg = _mm512_setzero_epi32();
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
-						neg = _mm512_set1_epi32(step1);
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						sum2 = _mm512_i32gather_ps(v_int, thres_pos, 4);  //
-	
-                        v_tmp = _mm512_set1_ps(qsine);   //new1
-						sum2 = _mm512_mul_ps(sum2, v_tmp);
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//last
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_tmp = _mm512_set1_ps(coff2);
-						v_float = _mm512_mul_ps(v_float, v_tmp);
-                        sum2 = _mm512_add_ps(sum2, v_float);						
-						short_pointer += 16;	
-						//v_float = _mm512_set1_epi32(qsine);
-						//sum2 = 
-					
-						//---------------------------------------------------------
-						//-------------compute LSH code---------------
-                                
-						unsigned char* char_pointer = (unsigned char*) short_pointer;
-						
-						//-------------LSH codebook----------						
-                        for(int i = 0; i < LSH_level_; i++){
-                            float* lsh_pointer = query_lsh[i];             
-
-						    _mm_prefetch((char *) (lsh_pointer), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 64), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 128), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 192), _MM_HINT_T0);
-									
-                            v_char = _mm_loadu_si128((__m128i*) char_pointer); 
-							v_int = _mm512_cvtepu8_epi32(v_char);
-					        v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
-						    sum1 = _mm512_sub_ps(sum1, v_float);
-                            char_pointer += 16;
-
-                            v_char = _mm_loadu_si128((__m128i*) char_pointer); 
-							v_int = _mm512_cvtepu8_epi32(v_char);
-					        v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						    short_pointer += 16;
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, temp_center);
 						    sum2 = _mm512_sub_ps(sum2, v_float);
-                            char_pointer += 16; 									
-						}
+						
+						    short_pointer += 16;   					
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, diff_3);	
+                            sum2 = _mm512_div_ps(sum2, v_float);
+						    short_pointer += 16;
+						
+						    _mm_prefetch((char *) (thres_pos), _MM_HINT_T0);
+						
+						    v_int = _mm512_cvtps_epi32(sum1);
+						    __mmask16 k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
+						    __m512i neg = _mm512_setzero_epi32();
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
+						    neg = _mm512_set1_epi32(step1);
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    sum1 = _mm512_i32gather_ps(v_int, thres_pos, 4);
+						
+                            __m512 v_tmp = _mm512_set1_ps(qsine);   
+						    sum1 = _mm512_mul_ps(sum1, v_tmp);
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_tmp = _mm512_set1_ps(coff2);
+						    v_float = _mm512_mul_ps(v_float, v_tmp);
+                            sum1 = _mm512_add_ps(sum1, v_float);						
+						    short_pointer += 16;						
+
+						    v_int = _mm512_cvtps_epi32(sum2);
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
+						    neg = _mm512_setzero_epi32();
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
+						    neg = _mm512_set1_epi32(step1);
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    sum2 = _mm512_i32gather_ps(v_int, thres_pos, 4); 
+	
+                            v_tmp = _mm512_set1_ps(qsine);   
+						    sum2 = _mm512_mul_ps(sum2, v_tmp);
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_tmp = _mm512_set1_ps(coff2);
+						    v_float = _mm512_mul_ps(v_float, v_tmp);
+                            sum2 = _mm512_add_ps(sum2, v_float);						
+						    short_pointer += 16;	
+                                
+						    unsigned char* char_pointer = (unsigned char*) short_pointer;
+											
+                            for(int i = 0; i < LSH_level_; i++){
+                                float* lsh_pointer = query_lsh[i];             
+
+						        _mm_prefetch((char *) (lsh_pointer), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 64), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 128), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 192), _MM_HINT_T0);
+									
+                                v_char = _mm_loadu_si128((__m128i*) char_pointer); 
+							    v_int = _mm512_cvtepu8_epi32(v_char);
+					            v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						        sum1 = _mm512_sub_ps(sum1, v_float);
+                                char_pointer += 16;
+
+                                v_char = _mm_loadu_si128((__m128i*) char_pointer); 
+							    v_int = _mm512_cvtepu8_epi32(v_char);
+					            v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						        sum2 = _mm512_sub_ps(sum2, v_float);
+                                char_pointer += 16; 									
+						    }
 								
-						_mm512_store_ps(Thres1, sum1);
-                        _mm512_store_ps(Thres2, sum2);
+						    _mm512_store_ps(Thres1, sum1);
+                            _mm512_store_ps(Thres2, sum2);
 					
-						//---------------------------------------------------	
+						    for(int i = 0; i < 16; i++){
+							    if(Thres1[i] <= 0){
+                                    real_data[count] = datal[i];
+								    count++;
+							    }
+						    }
+						
+						    int* datall = datal + 16;
+						    for(int i = 0; i < div; i++){
+							    if(Thres2[i] <= 0){
+                                    real_data[count] = datall[i];
+								    count++;
+							    }
+						    }						
+					    }
 
+                        else if(round == 3){
+                            unsigned short int* short_pointer = (unsigned short int*) (datal + 48);
+
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    sum1 = _mm512_mul_ps(v_float, diff_1);
+						    sum1 = _mm512_sub_ps(sum1, temp_sub);	
 	
-						//bool* check_pointer = is_checked;		
-						for(int i = 0; i < 16; i++){
-							if(Thres1[i] <= 0){
-                                real_data[count] = datal[i];
-								count++;
-							}
-						}
-						
-						int* datall = datal + 16;
-						for(int i = 0; i < div; i++){
-							if(Thres2[i] <= 0){
-                                real_data[count] = datall[i];
-								count++;
-							}
-
-						}						
-					}
-
-                    else if(round == 3){
-                        unsigned short int* short_pointer = (unsigned short int*) (datal + 48);
-
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//1st
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						sum1 = _mm512_mul_ps(v_float, diff_1);
-						sum1 = _mm512_sub_ps(sum1, temp_sub);	
-	
-						short_pointer += 16;
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//adjust norm
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, temp_center);
-						sum1 = _mm512_sub_ps(sum1, v_float);
-						
-						short_pointer += 16;   					
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//3rd
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, diff_3);	
-                        sum1 = _mm512_div_ps(sum1, v_float);
-						short_pointer += 16;
-						
-						//_mm512_store_ps(Thres1, sum1);
-	//----------------------------------------------------------------					
-//----------------------------------------------------------
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//1st
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						sum2 = _mm512_mul_ps(v_float, diff_1);
-						sum2 = _mm512_sub_ps(sum2, temp_sub);	
-	
-						short_pointer += 16;
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//adjust norm
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, temp_center);
-						sum2 = _mm512_sub_ps(sum2, v_float);
-						
-						short_pointer += 16;   					
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//3rd
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, diff_3);	
-                        sum2 = _mm512_div_ps(sum2, v_float);
-						short_pointer += 16;
-						
-						//_mm512_store_ps(Thres2, sum2);
-	//----------------------------------------------------------------
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//1st
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						sum3 = _mm512_mul_ps(v_float, diff_1);
-						sum3 = _mm512_sub_ps(sum3, temp_sub);
-						
-						short_pointer += 16;
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//adjust norm
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, temp_center);
-						sum3 = _mm512_sub_ps(sum3, v_float);
-						
-						short_pointer += 16;   					
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//3rd
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, diff_3);	
-                        sum3 = _mm512_div_ps(sum3, v_float);
-						short_pointer += 16;
-						
-						//_mm512_store_ps(Thres3, sum3);
-
-						//-------------compute LSH code---------------
-						_mm_prefetch((char *) (thres_pos), _MM_HINT_T0);						
-						
-						v_int = _mm512_cvtps_epi32(sum1);
-						__mmask16 k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
-						__m512i neg = _mm512_setzero_epi32();
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
-						neg = _mm512_set1_epi32(step1);
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						sum1 = _mm512_i32gather_ps(v_int, thres_pos, 4);//
-
-                        __m512 v_tmp = _mm512_set1_ps(qsine);   //new1
-						sum1 = _mm512_mul_ps(sum1, v_tmp);
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//last
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_tmp = _mm512_set1_ps(coff2);
-						v_float = _mm512_mul_ps(v_float, v_tmp);
-                        sum1 = _mm512_add_ps(sum1, v_float);						
-						short_pointer += 16;	
-
-						v_int = _mm512_cvtps_epi32(sum2);
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
-						neg = _mm512_setzero_epi32();
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
-						neg = _mm512_set1_epi32(step1);
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						sum2 = _mm512_i32gather_ps(v_int, thres_pos, 4);  //
-
-                        v_tmp = _mm512_set1_ps(qsine);   //new1
-						sum2 = _mm512_mul_ps(sum2, v_tmp);
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//last
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_tmp = _mm512_set1_ps(coff2);
-						v_float = _mm512_mul_ps(v_float, v_tmp);
-                        sum2 = _mm512_add_ps(sum2, v_float);						
-						short_pointer += 16;	
-
-						v_int = _mm512_cvtps_epi32(sum3);
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
-						neg = _mm512_setzero_epi32();
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
-						neg = _mm512_set1_epi32(step1);
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-
-						sum3 = _mm512_i32gather_ps(v_int, thres_pos, 4); //
-
-                        v_tmp = _mm512_set1_ps(qsine);   //new1
-						sum3 = _mm512_mul_ps(sum3, v_tmp);
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//last
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_tmp = _mm512_set1_ps(coff2);
-						v_float = _mm512_mul_ps(v_float, v_tmp);
-                        sum3 = _mm512_add_ps(sum3, v_float);						
-						short_pointer += 16;	
-					
-						//---------------------------------------------------------
-						//-------------compute LSH code---------------
-                                
-						unsigned char* char_pointer = (unsigned char*) short_pointer;
-						
-                        for(int i = 0; i < LSH_level_; i++){
-                            float* lsh_pointer = query_lsh[i];
-
-						    _mm_prefetch((char *) (lsh_pointer), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 64), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 128), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 192), _MM_HINT_T0);
-									
-                            v_char = _mm_loadu_si128((__m128i*) char_pointer); 
-							v_int = _mm512_cvtepu8_epi32(v_char);
-					        v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						    short_pointer += 16;
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, temp_center);
 						    sum1 = _mm512_sub_ps(sum1, v_float);
-                            char_pointer += 16;
-
-                            v_char = _mm_loadu_si128((__m128i*) char_pointer); 
-							v_int = _mm512_cvtepu8_epi32(v_char);
-					        v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						
+						    short_pointer += 16;   					
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, diff_3);	
+                            sum1 = _mm512_div_ps(sum1, v_float);
+						    short_pointer += 16;
+						
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    sum2 = _mm512_mul_ps(v_float, diff_1);
+						    sum2 = _mm512_sub_ps(sum2, temp_sub);	
+	
+						    short_pointer += 16;
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, temp_center);
 						    sum2 = _mm512_sub_ps(sum2, v_float);
-                            char_pointer += 16; 
-
-                            v_char = _mm_loadu_si128((__m128i*) char_pointer); 
-							v_int = _mm512_cvtepu8_epi32(v_char);
-					        v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						
+						    short_pointer += 16;   					
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, diff_3);	
+                            sum2 = _mm512_div_ps(sum2, v_float);
+						    short_pointer += 16;
+						
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    sum3 = _mm512_mul_ps(v_float, diff_1);
+						    sum3 = _mm512_sub_ps(sum3, temp_sub);
+						
+						    short_pointer += 16;
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, temp_center);
 						    sum3 = _mm512_sub_ps(sum3, v_float);
-                            char_pointer += 16; 									
-						}
+						
+						    short_pointer += 16;   					
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, diff_3);	
+                            sum3 = _mm512_div_ps(sum3, v_float);
+						    short_pointer += 16;
+
+						    _mm_prefetch((char *) (thres_pos), _MM_HINT_T0);
+						
+						    v_int = _mm512_cvtps_epi32(sum1);
+						    __mmask16 k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
+						    __m512i neg = _mm512_setzero_epi32();
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
+						    neg = _mm512_set1_epi32(step1);
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    sum1 = _mm512_i32gather_ps(v_int, thres_pos, 4);
+
+                            __m512 v_tmp = _mm512_set1_ps(qsine);   
+						    sum1 = _mm512_mul_ps(sum1, v_tmp);
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_tmp = _mm512_set1_ps(coff2);
+						    v_float = _mm512_mul_ps(v_float, v_tmp);
+                            sum1 = _mm512_add_ps(sum1, v_float);						
+						    short_pointer += 16;	
+
+						    v_int = _mm512_cvtps_epi32(sum2);
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
+						    neg = _mm512_setzero_epi32();
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
+						    neg = _mm512_set1_epi32(step1);
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    sum2 = _mm512_i32gather_ps(v_int, thres_pos, 4);  
+
+                            v_tmp = _mm512_set1_ps(qsine);   
+						    sum2 = _mm512_mul_ps(sum2, v_tmp);
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_tmp = _mm512_set1_ps(coff2);
+						    v_float = _mm512_mul_ps(v_float, v_tmp);
+                            sum2 = _mm512_add_ps(sum2, v_float);						
+						    short_pointer += 16;	
+
+						    v_int = _mm512_cvtps_epi32(sum3);
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
+						    neg = _mm512_setzero_epi32();
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
+						    neg = _mm512_set1_epi32(step1);
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+
+						    sum3 = _mm512_i32gather_ps(v_int, thres_pos, 4); 
+
+                            v_tmp = _mm512_set1_ps(qsine);   
+						    sum3 = _mm512_mul_ps(sum3, v_tmp);
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_tmp = _mm512_set1_ps(coff2);
+						    v_float = _mm512_mul_ps(v_float, v_tmp);
+                            sum3 = _mm512_add_ps(sum3, v_float);						
+						    short_pointer += 16;	
+              
+						    unsigned char* char_pointer = (unsigned char*) short_pointer;
+						
+                            for(int i = 0; i < LSH_level_; i++){
+                                float* lsh_pointer = query_lsh[i];
+
+						        _mm_prefetch((char *) (lsh_pointer), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 64), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 128), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 192), _MM_HINT_T0);
+									
+                                v_char = _mm_loadu_si128((__m128i*) char_pointer); 
+							    v_int = _mm512_cvtepu8_epi32(v_char);
+					            v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						        sum1 = _mm512_sub_ps(sum1, v_float);
+                                char_pointer += 16;
+
+                                v_char = _mm_loadu_si128((__m128i*) char_pointer); 
+							    v_int = _mm512_cvtepu8_epi32(v_char);
+					            v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						        sum2 = _mm512_sub_ps(sum2, v_float);
+                                char_pointer += 16; 
+
+                                v_char = _mm_loadu_si128((__m128i*) char_pointer); 
+							    v_int = _mm512_cvtepu8_epi32(v_char);
+					            v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						        sum3 = _mm512_sub_ps(sum3, v_float);
+                                char_pointer += 16; 									
+						    }
 								
-						_mm512_store_ps(Thres1, sum1);
-                        _mm512_store_ps(Thres2, sum2);
-                        _mm512_store_ps(Thres3, sum3);
+						    _mm512_store_ps(Thres1, sum1);
+                            _mm512_store_ps(Thres2, sum2);
+                            _mm512_store_ps(Thres3, sum3);
 						
-						//bool* check_pointer = is_checked;		
-						for(int i = 0; i < 16; i++){
-							if(Thres1[i] <= 0){
-	                            real_data[count] = datal[i];
-								count++;
-							}
-						}
+						    for(int i = 0; i < 16; i++){
+							    if(Thres1[i] <= 0){
+	                                real_data[count] = datal[i];
+								    count++;
+							    }
+						    }
 						
-						int* datall = datal + 16;
-						for(int i = 0; i < 16; i++){
-							if(Thres2[i] <= 0){
-                                real_data[count] = datall[i];
-								count++;
-							}
-						}
+						    int* datall = datal + 16;
+						    for(int i = 0; i < 16; i++){
+							    if(Thres2[i] <= 0){
+                                    real_data[count] = datall[i];
+								    count++;
+							    }
+						    }
 
-                        datall += 16;
-						for(int i = 0; i < div; i++){
-							if(Thres3[i] <= 0){
-                                real_data[count] = datall[i];
-								count++;
-							}
-						}
-						
-					}
+                            datall += 16;
+						    for(int i = 0; i < div; i++){
+							    if(Thres3[i] <= 0){
+                                    real_data[count] = datall[i];
+								    count++;
+							    }
+						    }
+					    }
 
-                    else if(round == 4){
-                        unsigned short int* short_pointer = (unsigned short int*) (datal + maxM0_);
+                        else if(round == 4){
+                            unsigned short int* short_pointer = (unsigned short int*) (datal + maxM0_);
 						
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//1st
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						sum1 = _mm512_mul_ps(v_float, diff_1);
-						sum1 = _mm512_sub_ps(sum1, temp_sub);	
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    sum1 = _mm512_mul_ps(v_float, diff_1);
+						    sum1 = _mm512_sub_ps(sum1, temp_sub);	
 	
-						short_pointer += 16;
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//adjust norm
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, temp_center);
-						sum1 = _mm512_sub_ps(sum1, v_float);
-						
-						short_pointer += 16;   					
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//3rd
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, diff_3);	
-                        sum1 = _mm512_div_ps(sum1, v_float);
-						short_pointer += 16;
-						
-						//_mm512_store_ps(Thres1, sum1);
-	//----------------------------------------------------------------					
-//----------------------------------------------------------
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//1st
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						sum2 = _mm512_mul_ps(v_float, diff_1);
-						sum2 = _mm512_sub_ps(sum2, temp_sub);		
-	
-						short_pointer += 16;
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//adjust norm
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, temp_center);
-						sum2 = _mm512_sub_ps(sum2, v_float);
-						
-						short_pointer += 16;   					
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//3rd
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, diff_3);	
-                        sum2 = _mm512_div_ps(sum2, v_float);
-						short_pointer += 16;
-						
-						//_mm512_store_ps(Thres2, sum2);
-	//----------------------------------------------------------------
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//1st
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						sum3 = _mm512_mul_ps(v_float, diff_1);
-						sum3 = _mm512_sub_ps(sum3, temp_sub);		
-	
-						short_pointer += 16;
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//adjust norm
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, temp_center);
-						sum3 = _mm512_sub_ps(sum3, v_float);
-						
-						short_pointer += 16;   					
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//3rd
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, diff_3);	
-                        sum3 = _mm512_div_ps(sum3, v_float);
-						short_pointer += 16;
-						
-						//_mm512_store_ps(Thres3, sum3);
-//-----------------------------------------------------------------------------------
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//1st
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						sum4 = _mm512_mul_ps(v_float, diff_1);
-						sum4 = _mm512_sub_ps(sum4, temp_sub);	
-	
-						short_pointer += 16;
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//adjust norm
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, temp_center);
-						sum4 = _mm512_sub_ps(sum4, v_float);
-						
-						short_pointer += 16;   					
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//3rd
-						v_int = _mm512_cvtepu16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_float = _mm512_mul_ps(v_float, diff_3);	
-                        sum4 = _mm512_div_ps(sum4, v_float);
-						short_pointer += 16;
-						
-						//_mm512_store_ps(Thres4, sum4);					
-						//-----------mask part---------------------------------
-						_mm_prefetch((char *) (thres_pos), _MM_HINT_T0);						
-						
-						v_int = _mm512_cvtps_epi32(sum1);
-						__mmask16 k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
-						__m512i neg = _mm512_setzero_epi32();
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
-						neg = _mm512_set1_epi32(step1);
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						sum1 = _mm512_i32gather_ps(v_int, thres_pos, 4);//
-						
-                        __m512 v_tmp = _mm512_set1_ps(qsine);   //new1
-						sum1 = _mm512_mul_ps(sum1, v_tmp);
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//last
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_tmp = _mm512_set1_ps(coff2);
-						v_float = _mm512_mul_ps(v_float, v_tmp);
-                        sum1 = _mm512_add_ps(sum1, v_float);						
-						short_pointer += 16;						
-
-						v_int = _mm512_cvtps_epi32(sum2);
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
-						neg = _mm512_setzero_epi32();
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
-						neg = _mm512_set1_epi32(step1);
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						sum2 = _mm512_i32gather_ps(v_int, thres_pos, 4);  //
-						
-                        v_tmp = _mm512_set1_ps(qsine);   //new1
-						sum2 = _mm512_mul_ps(sum2, v_tmp);
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//last
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_tmp = _mm512_set1_ps(coff2);
-						v_float = _mm512_mul_ps(v_float, v_tmp);
-                        sum2 = _mm512_add_ps(sum2, v_float);						
-						short_pointer += 16;						
-
-						v_int = _mm512_cvtps_epi32(sum3);
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
-						neg = _mm512_setzero_epi32();
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
-						neg = _mm512_set1_epi32(step1);
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-
-						sum3 = _mm512_i32gather_ps(v_int, thres_pos, 4); //
-						
-                        v_tmp = _mm512_set1_ps(qsine);   //new1
-						sum3 = _mm512_mul_ps(sum3, v_tmp);
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//last
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_tmp = _mm512_set1_ps(coff2);
-						v_float = _mm512_mul_ps(v_float, v_tmp);
-                        sum3 = _mm512_add_ps(sum3, v_float);						
-						short_pointer += 16;						
-
-						v_int = _mm512_cvtps_epi32(sum4);
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
-						neg = _mm512_setzero_epi32();
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
-						neg = _mm512_set1_epi32(step1);
-						v_int = _mm512_mask_mov_epi32(v_int, k, neg);
-						
-						sum4 = _mm512_i32gather_ps(v_int, thres_pos, 4);
-
-                        v_tmp = _mm512_set1_ps(qsine);   //new1
-						sum4 = _mm512_mul_ps(sum4, v_tmp);
-						v_short = _mm256_loadu_si256((__m256i*) short_pointer);//last
-						v_int = _mm512_cvtepi16_epi32(v_short);
-						v_float = _mm512_cvtepi32_ps(v_int);
-						v_tmp = _mm512_set1_ps(coff2);
-						v_float = _mm512_mul_ps(v_float, v_tmp);
-                        sum4 = _mm512_add_ps(sum4, v_float);						
-						short_pointer += 16;						
-						//---------------------------------------------------------
-						//-------------compute LSH code---------------
-                                
-						unsigned char* char_pointer = (unsigned char*) short_pointer;
-						
-						//-------------LSH codebook-----------------------
-                        for(int i = 0; i < LSH_level_; i++){
-                            float* lsh_pointer = query_lsh[i];
-
-						    _mm_prefetch((char *) (lsh_pointer), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 64), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 128), _MM_HINT_T0);
-						    _mm_prefetch((char *) (lsh_pointer + 192), _MM_HINT_T0);
-									
-                            v_char = _mm_loadu_si128((__m128i*) char_pointer); 
-							v_int = _mm512_cvtepu8_epi32(v_char);
-					        v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						    short_pointer += 16;
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, temp_center);
 						    sum1 = _mm512_sub_ps(sum1, v_float);
-                            char_pointer += 16;
-
-                            v_char = _mm_loadu_si128((__m128i*) char_pointer); 
-							v_int = _mm512_cvtepu8_epi32(v_char);
-					        v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						
+						    short_pointer += 16;   					
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, diff_3);	
+                            sum1 = _mm512_div_ps(sum1, v_float);
+						    short_pointer += 16;
+						
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    sum2 = _mm512_mul_ps(v_float, diff_1);
+						    sum2 = _mm512_sub_ps(sum2, temp_sub);		
+	
+						    short_pointer += 16;
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, temp_center);
 						    sum2 = _mm512_sub_ps(sum2, v_float);
-                            char_pointer += 16; 
-
-                            v_char = _mm_loadu_si128((__m128i*) char_pointer); 
-							v_int = _mm512_cvtepu8_epi32(v_char);
-					        v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						
+						    short_pointer += 16;   					
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, diff_3);	
+                            sum2 = _mm512_div_ps(sum2, v_float);
+						    short_pointer += 16;
+						
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    sum3 = _mm512_mul_ps(v_float, diff_1);
+						    sum3 = _mm512_sub_ps(sum3, temp_sub);		
+	
+						    short_pointer += 16;
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, temp_center);
 						    sum3 = _mm512_sub_ps(sum3, v_float);
-                            char_pointer += 16; 
-
-                            v_char = _mm_loadu_si128((__m128i*) char_pointer); 
-							v_int = _mm512_cvtepu8_epi32(v_char);
-					        v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						
+						    short_pointer += 16;   					
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, diff_3);	
+                            sum3 = _mm512_div_ps(sum3, v_float);
+						    short_pointer += 16;
+						
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    sum4 = _mm512_mul_ps(v_float, diff_1);
+						    sum4 = _mm512_sub_ps(sum4, temp_sub);	
+	
+						    short_pointer += 16;
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, temp_center);
 						    sum4 = _mm512_sub_ps(sum4, v_float);
-                            char_pointer += 16;  									
-						}
+						
+						    short_pointer += 16;   					
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepu16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_float = _mm512_mul_ps(v_float, diff_3);	
+                            sum4 = _mm512_div_ps(sum4, v_float);
+						    short_pointer += 16;
+						
+						    _mm_prefetch((char *) (thres_pos), _MM_HINT_T0);
+						
+						    v_int = _mm512_cvtps_epi32(sum1);
+						    __mmask16 k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
+						    __m512i neg = _mm512_setzero_epi32();
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
+						    neg = _mm512_set1_epi32(step1);
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    sum1 = _mm512_i32gather_ps(v_int, thres_pos, 4);
+						
+                            __m512 v_tmp = _mm512_set1_ps(qsine); 
+						    sum1 = _mm512_mul_ps(sum1, v_tmp);
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_tmp = _mm512_set1_ps(coff2);
+						    v_float = _mm512_mul_ps(v_float, v_tmp);
+                            sum1 = _mm512_add_ps(sum1, v_float);						
+						    short_pointer += 16;						
+
+						    v_int = _mm512_cvtps_epi32(sum2);
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
+						    neg = _mm512_setzero_epi32();
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
+						    neg = _mm512_set1_epi32(step1);
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    sum2 = _mm512_i32gather_ps(v_int, thres_pos, 4); 
+						
+                            v_tmp = _mm512_set1_ps(qsine);  
+						    sum2 = _mm512_mul_ps(sum2, v_tmp);
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_tmp = _mm512_set1_ps(coff2);
+						    v_float = _mm512_mul_ps(v_float, v_tmp);
+                            sum2 = _mm512_add_ps(sum2, v_float);						
+						    short_pointer += 16;						
+
+						    v_int = _mm512_cvtps_epi32(sum3);
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
+						    neg = _mm512_setzero_epi32();
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
+						    neg = _mm512_set1_epi32(step1);
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+
+						    sum3 = _mm512_i32gather_ps(v_int, thres_pos, 4);
+						
+                            v_tmp = _mm512_set1_ps(qsine);
+						    sum3 = _mm512_mul_ps(sum3, v_tmp);
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_tmp = _mm512_set1_ps(coff2);
+						    v_float = _mm512_mul_ps(v_float, v_tmp);
+                            sum3 = _mm512_add_ps(sum3, v_float);						
+						    short_pointer += 16;						
+
+						    v_int = _mm512_cvtps_epi32(sum4);
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(LB), _MM_CMPINT_LE);
+						    neg = _mm512_setzero_epi32();
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    k =_mm512_cmp_epi32_mask(v_int, _mm512_set1_epi32(UB), _MM_CMPINT_GE);
+						    neg = _mm512_set1_epi32(step1);
+						    v_int = _mm512_mask_mov_epi32(v_int, k, neg);
+						
+						    sum4 = _mm512_i32gather_ps(v_int, thres_pos, 4);
+
+                            v_tmp = _mm512_set1_ps(qsine);
+						    sum4 = _mm512_mul_ps(sum4, v_tmp);
+						    v_short = _mm256_loadu_si256((__m256i*) short_pointer);
+						    v_int = _mm512_cvtepi16_epi32(v_short);
+						    v_float = _mm512_cvtepi32_ps(v_int);
+						    v_tmp = _mm512_set1_ps(coff2);
+						    v_float = _mm512_mul_ps(v_float, v_tmp);
+                            sum4 = _mm512_add_ps(sum4, v_float);						
+						    short_pointer += 16;						
+       
+						    unsigned char* char_pointer = (unsigned char*) short_pointer;
+						
+                            for(int i = 0; i < LSH_level_; i++){
+                                float* lsh_pointer = query_lsh[i];
+
+						        _mm_prefetch((char *) (lsh_pointer), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 64), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 128), _MM_HINT_T0);
+						        _mm_prefetch((char *) (lsh_pointer + 192), _MM_HINT_T0);
+									
+                                v_char = _mm_loadu_si128((__m128i*) char_pointer); 
+							    v_int = _mm512_cvtepu8_epi32(v_char);
+					            v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						        sum1 = _mm512_sub_ps(sum1, v_float);
+                                char_pointer += 16;
+
+                                v_char = _mm_loadu_si128((__m128i*) char_pointer); 
+							    v_int = _mm512_cvtepu8_epi32(v_char);
+					            v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						        sum2 = _mm512_sub_ps(sum2, v_float);
+                                char_pointer += 16; 
+
+                                v_char = _mm_loadu_si128((__m128i*) char_pointer); 
+							    v_int = _mm512_cvtepu8_epi32(v_char);
+					            v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						        sum3 = _mm512_sub_ps(sum3, v_float);
+                                char_pointer += 16; 
+
+                                v_char = _mm_loadu_si128((__m128i*) char_pointer); 
+							    v_int = _mm512_cvtepu8_epi32(v_char);
+					            v_float = _mm512_i32gather_ps(v_int, lsh_pointer, 4);
+						        sum4 = _mm512_sub_ps(sum4, v_float);
+                                char_pointer += 16;  									
+						    }
 								
-						_mm512_store_ps(Thres1, sum1);
-                        _mm512_store_ps(Thres2, sum2);
-                        _mm512_store_ps(Thres3, sum3);
-                        _mm512_store_ps(Thres4, sum4);						
-
+						    _mm512_store_ps(Thres1, sum1);
+                            _mm512_store_ps(Thres2, sum2);
+                            _mm512_store_ps(Thres3, sum3);
+                            _mm512_store_ps(Thres4, sum4);						
+	
+						    for(int i = 0; i < 16; i++){
+							    if(Thres1[i] <= 0){
+                                    real_data[count] = datal[i];
+								    count++;
+							    }
+						    }
 						
-						//bool* check_pointer = is_checked;		
-						for(int i = 0; i < 16; i++){
-							if(Thres1[i] <= 0){
-                                real_data[count] = datal[i];
-								count++;
-							}
-						}
-						
-						int* datall = datal + 16;
-						for(int i = 0; i < 16; i++){
-							if(Thres2[i] <= 0){
-                                real_data[count] = datall[i];
-								count++;
-							}
-						}
+						    int* datall = datal + 16;
+						    for(int i = 0; i < 16; i++){
+							    if(Thres2[i] <= 0){
+                                    real_data[count] = datall[i];
+								    count++;
+							    }
+						    }
 
-                        datall += 16;
-						for(int i = 0; i < 16; i++){
-							if(Thres3[i] <= 0){
-                                real_data[count] = datall[i];
-								count++;
-							}
-						}
+                            datall += 16;
+						    for(int i = 0; i < 16; i++){
+							    if(Thres3[i] <= 0){
+                                    real_data[count] = datall[i];
+								    count++;
+							    }
+						    }
 
-                        datall += 16;
-						for(int i = 0; i < div; i++){
-							if(Thres4[i] <= 0){
-                                real_data[count] = datall[i];
-								count++;								
-							}
-						}						
-					}
+                            datall += 16;
+						    for(int i = 0; i < div; i++){
+							    if(Thres4[i] <= 0){
+                                    real_data[count] = datall[i];
+								    count++;								
+							    }
+						    }						
+					    }
 					
-//-----------------------------------------------------------------------------
-
                         size = count;
 						datal = real_data;
 
@@ -1467,8 +1393,7 @@ namespace hnswlib {
 #endif							       
                             if (!(visited_array[candidate_id] == visited_array_tag)) {
 								visited_array[candidate_id] = visited_array_tag;
-								//if(is_checked[j] == false){continue;}
-								
+	
 			                    char* norm_pointer = getNormByInternalIdQuery(candidate_id);
 
 			                    float true_norm = *((float*) norm_pointer); 
@@ -1494,6 +1419,7 @@ namespace hnswlib {
 					    }				
 					} 					
 				}
+				
 				if (nk <= k)
                 k = nk;
                 else {++k;}
@@ -1565,8 +1491,6 @@ namespace hnswlib {
             return (linklistsizeint *) (data_level0_memory64_ + internal_id * size_links_level0_);
         };
 
-
-
         linklistsizeint *get_linklist0(tableint internal_id) const {
             return (linklistsizeint *) (data_level0_memory_ + internal_id * size_data_per_element_ + offsetLevel0_);
         };
@@ -1614,7 +1538,6 @@ namespace hnswlib {
                 setListCount(ll_cur,selectedNeighbors.size());
                 
 				int *data = (int *) (ll_cur + 1);
-				//data += 1;
                 for (size_t idx = 0; idx < selectedNeighbors.size(); idx++) {
 					int* data2 = getNeighborid(data, idx);
                     if (*data2 && !isUpdate)
@@ -1716,7 +1639,6 @@ namespace hnswlib {
             ef_ = ef;
         }
 
-
         std::priority_queue<std::pair<dist_t, tableint>> searchKnnInternal(void *query_data, int k) {
             std::priority_queue<std::pair<dist_t, tableint  >> top_candidates;
 			/*
@@ -1797,8 +1719,6 @@ namespace hnswlib {
             std::ofstream output(location, std::ios::binary);
             std::streampos position;
 
-            //min_norm2_ = tol_min_norm;
-			//diff2_ = diff2;
 			diff3_ = diff3;
 
             writeBinaryPOD(output, m_);
@@ -1977,11 +1897,10 @@ namespace hnswlib {
 			size_t index_size = size_links_level16_ * num16 + size_links_level32_ * num32 + size_links_level48_ * num48 + size_links_level0_ * num64;
 			
 			data_level0_memory_ = (char *) malloc(new_size);
-		   if (data_level0_memory_ == nullptr)
+		    if (data_level0_memory_ == nullptr)
                 throw std::runtime_error("Not enough memory: loadIndex failed to allocate level0");
-           input.read(data_level0_memory_, new_size);
-		   
-		   //-------------------------------------
+            input.read(data_level0_memory_, new_size);
+
 		    data_level0_memory32_ =  data_level0_memory_ + size_links_level16_ * num16;
 			data_level0_memory48_ =  data_level0_memory32_ + size_links_level32_ * num32;
           	data_level0_memory64_ =  data_level0_memory48_ + size_links_level48_ * num48;	   
@@ -1989,7 +1908,6 @@ namespace hnswlib {
 			
 			num32 += num16;
 			num48 += num32;
-		   //---------------------------------
 
             size_links_per_element_ = maxM_ * (4 * sizeof(unsigned short int) + sizeof(tableint) + LSH_level) + sizeof(linklistsizeint);
 
@@ -2142,28 +2060,27 @@ namespace hnswlib {
             int* data;
 			float* diff_data = new float[vecdim_];
 						   
-			//for(int id = 0; id < data_size; id++){
-                data = (int *) get_linklist0(id);
-                size_t size = getListCount((linklistsizeint*)data);
+            data = (int *) get_linklist0(id);
+            size_t size = getListCount((linklistsizeint*)data);
 			
-                int* datal = data + 1;
+            int* datal = data + 1;
 
-                float* center_data = (float*) getDataByInternalId(id);
+            float* center_data = (float*) getDataByInternalId(id);
                 
-				(*count) += size;
+		    (*count) += size;
 				
-				for (int i = 0; i < size; i++) {
-				    int a = *getNeighborid(datal, i);
+			for (int i = 0; i < size; i++) {
+				int a = *getNeighborid(datal, i);
 
-                    float* obj_data = (float*) getDataByInternalId(a);
+                float* obj_data = (float*) getDataByInternalId(a);
 
-                    calc_vec(obj_data, center_data, diff_data, vecdim_);
+                calc_vec(obj_data, center_data, diff_data, vecdim_);
 
-                    for(int l = 0; l < vecdim_; l++){
-					    edge_norm[l] += diff_data[l] * diff_data[l];
-				    }			
-			    }
-			//}
+                for(int l = 0; l < vecdim_; l++){
+					edge_norm[l] += diff_data[l] * diff_data[l];
+				}			
+			}
+		
 			delete[] diff_data;
 		}	
 		
@@ -2255,11 +2172,9 @@ namespace hnswlib {
 			    }
 			}
 			double avg_res = tol_sum / real_count;
-		//	printf("avg_res = %lf; real_count = %ld\n", avg_res, real_count);
 			delete[] diff_data;
 		}
 		
-
         float calc_vec(float* obj_vec, float* cen_vec, float* diff_vec, int vecdim){
 			
 			float* tmp_cen = new float[vecdim];
@@ -2317,8 +2232,7 @@ namespace hnswlib {
                 *is_edge = true;
                 if(cen_norm < min_real){
 			    *is_zero = true;		
-				}
-				
+				}			
 			}
 		    else{
 			    float cos = (float) (fstipfunc_(obj_vec, tmp_cen, dist_func_param_) / obj_norm / cen_norm);
@@ -2357,32 +2271,30 @@ namespace hnswlib {
 		}		
 			
 	
-void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, float* tmp_res,  float* tmp_last, int vecdim_, float* max_norm2, float* max_adjust, float* max_res, float* max_last, unsigned short int* norm_quan, float* val, bool* is_zero, bool* is_edge){
-	        //printf("check1\n");
+        void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, float* tmp_res,  float* tmp_last, int vecdim_, float* max_norm2, float* max_adjust, float* max_res, float* max_last, unsigned short int* norm_quan, float* val, bool* is_zero, bool* is_edge){
+			
             bool cur_sign, max_sign;
 			int cur_ip;
 		    float max_sum;
 		    unsigned char max_ip;
 			
             float* diff_data = new float[vecdim_];
-			//float* LSH_data = new float[vecdim_];
+
 			float* LSH_data;
             float* cen_vec = new float[vecdim_];
-			//unsigned char* proj_info = new unsigned char[level_];
+			
             unsigned char* LSH_info = new unsigned char[LSH_level_];			
 
             int* data;
 			
             data = (int *) get_linklist0(id);
-			
-            //int bb = getExternalLabel(id);
+
             size_t size = getListCount((linklistsizeint*)data);
 			
             int* datal = data + 1;
 
             float* center_data = (float*) getDataByInternalId(id);			
 
-//printf("check0.1\n");	
             for (int i = 0; i < size; i++) {
 				int a = *getNeighborid(datal, i);
                 float* obj_data = (float*) getDataByInternalId(a);
@@ -2410,8 +2322,7 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
   				}
 				
                 LSH_data = diff_data;
-				//----------LSH nearest vector--------
-				
+
 			    for(int k = 0; k < LSH_level_; k++){
 			
 		            for(int j = 0; j < m_; j++){
@@ -2430,14 +2341,9 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 		            }
 				    LSH_info[k] = max_ip;						
 			    }
-                //------------compute last norm---------------------------------
-				//printf("check0.2, vecdim_ = %d\n", vecdim_);	
+
 				for(int k = 0; k < LSH_level_; k++){
-					//printf("LSH_level = %d, LSH_vecdim0_ = %d, k = %d\n", LSH_level_, LSH_vecdim0_ , k);
-					//int ttttt = LSH_info[k];
-					//printf("id = %d\n", ttttt);
 			        for(int l = 0; l < LSH_vecdim0_; l++){
-						//printf("l = %d,  val1 = %d, k = %d, LSH_info[k] = %d\n",l, k * LSH_vecdim0_ + l, k, LSH_info[k]);
 						int s;
 						float s1;
 						if(LSH_info[k] >= 128){
@@ -2465,10 +2371,6 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 				    if(vval > *max_last) {*max_last = vval;}
   				}
 
-
-
-				//------------------------------------------------------------------------
-
                 tmp_norm2[i] = 0;
 
                 for(int l = 0; l < vecdim_; l++){
@@ -2476,22 +2378,16 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 				}
 
 				tmp_norm2[i] = sqrt(tmp_norm2[i]);
-				
-                //--------test--------------------------
-				
+
 				if(test_norm > 0.000001){
-					//*val += test_norm2/ test_norm;
 				    *val += tmp_norm2[i] / test_norm;
 				}
-				//--------test end-------------------------
-				
+	
 				if(i == 0) {*max_norm2 = tmp_norm2[i];}
 				else{
 				    if(tmp_norm2[i] > *max_norm2) {*max_norm2 = tmp_norm2[i];}
   				}				
-				
-				//-------------------------------
-				
+
 				tmp_res[i] = calc_res(LSH_data, center_data, *is_zero);
 				if(i == 0) {*max_res = tmp_res[i];}
 				else{
@@ -2502,8 +2398,6 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
                 if (cand < 0 || cand > max_elements_)
                    throw std::runtime_error("cand error");
 	            
-				//printf("check0.4\n");
-				
 			    if(size > 48){
 				    unsigned short int* norm_pointer = getFirstNorm(datal, i);
 				    *norm_pointer = norm_quan[cand]; 
@@ -2522,22 +2416,22 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 				}
 								
 				if(size > 48){
-									for(int j = 0; j < LSH_level_; j++){
-					unsigned char* pointer = getLSHM(datal, j, i);
-					*pointer = LSH_info[j];
-									}
+					for(int j = 0; j < LSH_level_; j++){
+					    unsigned char* pointer = getLSHM(datal, j, i);
+					    *pointer = LSH_info[j];
+				    }
 				}
 				else if(size > 32){
-									for(int j = 0; j < LSH_level_; j++){
-					unsigned char* pointer = getLSHM48(datal, j, i);
-					*pointer = LSH_info[j];					
-									}
+					for(int j = 0; j < LSH_level_; j++){
+					    unsigned char* pointer = getLSHM48(datal, j, i);
+					    *pointer = LSH_info[j];					
+					}
 				}
 				else if(size > 16){
-									for(int j = 0; j < LSH_level_; j++){
-					unsigned char* pointer = getLSHM32(datal, j, i);
-					*pointer = LSH_info[j];				
-									}
+					for(int j = 0; j < LSH_level_; j++){
+					    unsigned char* pointer = getLSHM32(datal, j, i);
+					    *pointer = LSH_info[j];				
+					}
 				}
                 else{
 				    for(int j = 0; j < LSH_level_; j++){
@@ -2547,14 +2441,10 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
                 }				
 			}
 			
-			//delete[] proj_info;
             delete[] LSH_info;	
 			delete[] diff_data;
-			//delete[] LSH_data;
 			delete[] cen_vec;
 		}
-
-
 
         void addEdgeNorm(int id, float* tmp_norm2, float* tmp_adjust, float* tmp_res, float* tmp_last, float diff2, float diffadj, float diffres, float difflast, bool* flag){
 			
@@ -2575,7 +2465,6 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 			    unsigned short int b;
 			    int c;
 			
-                //-----------write adjust----------------
 				short int b0;				
 				c = (tmp_adjust[i]) / diffadj;
                 
@@ -2599,8 +2488,7 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 				    *getAdjustNorm32(datal, i) = b0;
                 else 
                     *getAdjustNorm16(datal, i) = b0;
-				//---------------------------------------
-				//---------------------------------------
+
 			    c = (tmp_norm2[i]) / diff2;
 				c++;
 		        if(c < 1) {b = 1;}  //!!LSH norm cannot be 0
@@ -2610,9 +2498,7 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
                 else{
 				    b = c;
 			    }
-					
-				//if(flag == true) b = 0;	
-					
+						
 				if(size > 48)
 				    *getLSHNorm(datal, i) = b;	
 				else if(size > 32)
@@ -2621,7 +2507,7 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 				    *getLSHNorm32(datal, i) = b;
 				else
 					*getLSHNorm16(datal, i) = b;
-                //---------------------------------------------------
+
 			    c = (tmp_last[i]) / difflast;
 				
 				if(c > 32767) {
@@ -2650,10 +2536,8 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 			diffres_ = diffres;
 			difflast_ = difflast;
 		}
-
 		
-		void find_neighbors(size_t vecdim_, float** train_org, int ind, int* count, float** data){ //check
-		
+		void find_neighbors(size_t vecdim_, float** train_org, int ind, int* count, float** data){ 
 		    float min_real = 0.000001;
 			int true_id = getExternalLabel(ind);
 			
@@ -2663,7 +2547,6 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
             datal = datal + 1;			
 			
 			for(int i = 0; i < size; i++){
-				//int obj_id = getExternalLabel(neighbors[i]);
 				int obj_id = *getNeighborid(datal, i);
 				tableint cand = getExternalLabel(obj_id);
 				float sum = 0;
@@ -2672,7 +2555,6 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 				calc_vec(data[cand], data[true_id], tmp, vecdim_);
 				
 				for(int j = 0; j < vecdim_; j++){
-					//train_org[*count][j] = data[cand][j] - data[true_id][j];
 					train_org[*count][j] = tmp[j];
                     sum += train_org[*count][j] * train_org[*count][j];					
 				}
@@ -2702,7 +2584,6 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 			delete[] data3;
 		}		
 		
-
         void updatePoint(const void *dataPoint, tableint internalId, float updateNeighborProbability) {
             // update the feature vector associated with existing point with new vector
             memcpy(getDataByInternalId(internalId), dataPoint, data_size_);
@@ -2854,7 +2735,6 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
         };
 
         tableint addPoint(const void *data_point, labeltype label, int level, float* norm) {
-            //printf("check internal 1\n");
             tableint cur_c = 0;
             {
                 // Checking if the element with the same label already exists
@@ -2889,7 +2769,6 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
             std::unique_lock <std::mutex> lock_el(link_list_locks_[cur_c]);
             int curlevel = getRandomLevel(mult_);
 			
-			//printf("check internal 2\n");
             if (level > 0)
                 curlevel = level;
 
@@ -2997,12 +2876,10 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 		}
 
         void searchKnn(float *query_data, size_t k, unsigned int* result, float*** lsh_vec, float* thres_pos, float** query_lsh, int table_size) const {
-            //std::priority_queue<std::pair<dist_t, labeltype >> result;
-            //if (cur_element_count == 0) return result;			
 
             tableint currObj = enterpoint_node_;
 
-		char* norm0 = getNormByInternalIdQuery(enterpoint_node_);
+		    char* norm0 = getNormByInternalIdQuery(enterpoint_node_);
 			float true_norm0 = *((float*) norm0); 
 			norm0 += 4;
 			dist_t curdist = fstipfunc_(query_data, norm0, dist_func_param_);
@@ -3035,7 +2912,6 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 
                         if (d < curdist) {
                             curdist = d;
-							//printf("cur_dist = %f\n", curdist);
                             currObj = cand;
                             changed = true;
                         }
@@ -3043,8 +2919,6 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
                 }
             }
 
-            //std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst> top_candidates;
-			
             if (num_deleted_) {
                 searchBaseLayerST<true,true>(
                         currObj, query_data, std::max(ef_, k), result, k, lsh_vec, thres_pos, query_lsh, table_size);
@@ -3053,9 +2927,7 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
                 searchBaseLayerST<false,true>(
                         currObj, query_data, std::max(ef_, k), result, k, lsh_vec, thres_pos, query_lsh, table_size);
             }
-			//printf("check2.2\n");
         };
-
 
         void checkIntegrity(){
             int connections_checked=0;
@@ -3088,7 +2960,6 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
                 std::cout << "Min inbound: " << min1 << ", Max inbound:" << max1 << "\n";
             }
             std::cout << "integrity ok, checked " << connections_checked << " connections\n";
-
         }
 		
         void compression(int vecsize, int vecdim, bool* is_zero){
@@ -3130,8 +3001,7 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 				}
 			}
 			
-			
-           for(int i = 0; i < vecsize; i++){           //normalize data
+           for(int i = 0; i < vecsize; i++){           
 				double res = fstipfunc_(getDataByInternalId(i), getDataByInternalId(i), dist_func_param_);
 				res = sqrt(res);
  				*(float *)getNormByInternalId(i) = (float)res;				
@@ -3143,22 +3013,18 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 					     data[j] = (float) (data[j] / res);
 				    }
 				}
-
 			}			
-			
-			
-   
+
             sec_part_ = data_size_ + sizeof(labeltype) + sizeof(float);  
-            size_links_level16_ = 16 * (4 * sizeof(unsigned short int) + sizeof(tableint) +LSH_level_ ) + sizeof(linklistsizeint);   //new
+            size_links_level16_ = 16 * (4 * sizeof(unsigned short int) + sizeof(tableint) +LSH_level_ ) + sizeof(linklistsizeint);   
             size_data_per_element16_ = size_links_level16_ + data_size_ + sizeof(labeltype) + sizeof(float); 
 			
-            size_links_level32_ = 32 * (4 * sizeof(unsigned short int) + sizeof(tableint) + LSH_level_) + sizeof(linklistsizeint);   //new
+            size_links_level32_ = 32 * (4 * sizeof(unsigned short int) + sizeof(tableint) + LSH_level_) + sizeof(linklistsizeint);   
             size_data_per_element32_ = size_links_level32_ + data_size_ + sizeof(labeltype) + sizeof(float); 
 
-            size_links_level48_ = 48 * (4 * sizeof(unsigned short int) + sizeof(tableint) + LSH_level_) + sizeof(linklistsizeint);   //new
+            size_links_level48_ = 48 * (4 * sizeof(unsigned short int) + sizeof(tableint) + LSH_level_) + sizeof(linklistsizeint);   
             size_data_per_element48_ = size_links_level48_ + data_size_ + sizeof(labeltype) + sizeof(float);  
  
-
 			size_t new_size = size_data_per_element16_ * num16 + size_data_per_element32_ * num32+ size_data_per_element48_ * num48 + size_data_per_element_ * num64;
 				
 		    size_t index_size = size_links_level16_ * num16 + size_links_level32_ * num32 + size_links_level48_ * num48 + size_links_level0_ * num64;
@@ -3173,20 +3039,20 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
             int b = (int)(num16 + num32);
 			int c = (int)(num16 + num32 + num48);
 
-                for(int i = 0; i < vecsize; i++){
-					if(indicator[i] == 0){
-						convert_id2[i] = convert_id[i];
-					}
-					else if(indicator[i] == 1){
-						convert_id2[i] = convert_id[i] + a;
-					}
-					else if(indicator[i] == 2){
-						convert_id2[i] = convert_id[i] + b;
-					}					
-					else{
-						convert_id2[i] = convert_id[i] + c;
-					}
+            for(int i = 0; i < vecsize; i++){
+                if(indicator[i] == 0){
+					convert_id2[i] = convert_id[i];
 				}
+				else if(indicator[i] == 1){
+					convert_id2[i] = convert_id[i] + a;
+				}
+				else if(indicator[i] == 2){
+					convert_id2[i] = convert_id[i] + b;
+				}					
+				else{
+					convert_id2[i] = convert_id[i] + c;
+				}
+			}
 				
             for(int i = 0; i < vecsize; i++){
 				int* data = (int *)get_linklist0(i);
@@ -3198,60 +3064,59 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 				}
 			}				
 
-                char* pos_16 = data_level0_memory_new_;
-                char* pos_32 = data_level0_memory_new_ + size_links_level16_ * num16;
-                char* pos_48 = data_level0_memory_new_ + size_links_level16_ * num16 + size_links_level32_ * num32;				
-				char* pos_64 = data_level0_memory_new_ + size_links_level16_ * num16 + size_links_level32_ * num32 + size_links_level48_ * num48;
+            char* pos_16 = data_level0_memory_new_;
+            char* pos_32 = data_level0_memory_new_ + size_links_level16_ * num16;
+            char* pos_48 = data_level0_memory_new_ + size_links_level16_ * num16 + size_links_level32_ * num32;				
+			char* pos_64 = data_level0_memory_new_ + size_links_level16_ * num16 + size_links_level32_ * num32 + size_links_level48_ * num48;
 
-                for(int i = 0; i < vecsize; i++){
-					if(indicator[i] == 0){
-						int pos = convert_id[i];
-						char* cen = data_level0_memory_  + (size_data_per_element_ *  i);
-						char* obj = pos_16 + (size_links_level16_ * pos);
-						memcpy(obj, cen, size_links_level16_);
+            for(int i = 0; i < vecsize; i++){
+				if(indicator[i] == 0){
+					int pos = convert_id[i];
+					char* cen = data_level0_memory_  + (size_data_per_element_ *  i);
+					char* obj = pos_16 + (size_links_level16_ * pos);
+					memcpy(obj, cen, size_links_level16_);
 						
-						cen += size_links_level0_;
-						obj = vec_level0_memory_ + (pos * sec_part_);
+					cen += size_links_level0_;
+					obj = vec_level0_memory_ + (pos * sec_part_);
 						
-						memcpy(obj, cen, sec_part_);
+					memcpy(obj, cen, sec_part_);
 						
-					}
-					else if(indicator[i] == 1){
-						int pos = convert_id[i];
-						char* cen = data_level0_memory_  + (size_data_per_element_ *  i);
-						char* obj = pos_32 + (size_links_level32_ * pos);
-						memcpy(obj, cen, size_links_level32_);
-						
-						pos += a;
-						cen += size_links_level0_;
-						obj = vec_level0_memory_ + (pos * sec_part_);
-						//obj += size_links_level32_;
-						
-						memcpy(obj, cen, sec_part_);
-					}
-					else if(indicator[i] == 2){
-						int pos = convert_id[i];
-						char* cen = data_level0_memory_  + (size_data_per_element_ *  i);
-						char* obj = pos_48 + (size_links_level48_ * pos);
-						memcpy(obj, cen, size_links_level48_);
-						
-						pos += b;
-						cen += size_links_level0_;
-						obj = vec_level0_memory_ + (pos * sec_part_);					
-						memcpy(obj, cen, sec_part_);
-					}										
-					else{
-						int pos = convert_id[i];
-						char* cen = data_level0_memory_  + (size_data_per_element_ *  i);
-						char* obj = pos_64 + (size_links_level0_ * pos);
-						memcpy(obj, cen, size_links_level0_);
-						
-						pos += c;
-						cen += size_links_level0_;
-						obj = vec_level0_memory_ + (pos * sec_part_);					
-						memcpy(obj, cen, sec_part_);
-					}
 				}
+				else if(indicator[i] == 1){
+					int pos = convert_id[i];
+					char* cen = data_level0_memory_  + (size_data_per_element_ *  i);
+					char* obj = pos_32 + (size_links_level32_ * pos);
+					memcpy(obj, cen, size_links_level32_);
+						
+					pos += a;
+					cen += size_links_level0_;
+					obj = vec_level0_memory_ + (pos * sec_part_);
+
+					memcpy(obj, cen, sec_part_);
+				}
+				else if(indicator[i] == 2){
+					int pos = convert_id[i];
+					char* cen = data_level0_memory_  + (size_data_per_element_ *  i);
+					char* obj = pos_48 + (size_links_level48_ * pos);
+					memcpy(obj, cen, size_links_level48_);
+						
+					pos += b;
+					cen += size_links_level0_;
+					obj = vec_level0_memory_ + (pos * sec_part_);					
+					memcpy(obj, cen, sec_part_);
+				}										
+				else{
+					int pos = convert_id[i];
+					char* cen = data_level0_memory_  + (size_data_per_element_ *  i);
+					char* obj = pos_64 + (size_links_level0_ * pos);
+					memcpy(obj, cen, size_links_level0_);
+						
+					pos += c;
+					cen += size_links_level0_;
+					obj = vec_level0_memory_ + (pos * sec_part_);					
+					memcpy(obj, cen, sec_part_);
+				}
+			}
 
             for (int i = 0; i < vecsize; i++) {
                 if(element_levels_[i] <= 0) continue;
@@ -3283,245 +3148,12 @@ void addProjVal(int id, float*** LSH_vec, float* tmp_norm2, float* tmp_adjust, f
 			delete[] convert_id2;
             delete[] indicator;	
   
-            if(cur_element_count != vecsize) {printf("incorrectness_inequality\n"); exit(0);}       
-	   
+            if(cur_element_count != vecsize) {printf("incorrectness_inequality\n"); exit(0);}
+			
             label_offset_ = data_size_ + sizeof(float);
             free(data_level0_memory_);
             data_level0_memory_ = data_level0_memory_new_;
-            vec_level0_memory_ = data_level0_memory_ + index_size;			
-				
-			
-        }
-
-        void Boost(int* new_edge, int* new_size) {
-			
-			int eff = 10000;
-            int *data_i = (int *) get_linklist0(enterpoint_node_);
-            size_t pp = getListCount((linklistsizeint*)data_i);
-			
-			if(pp < maxM0_){
-                BoostBaseLayer(enterpoint_node_, getDataByInternalId(enterpoint_node_), eff, new_edge, new_size);
-			}
-			return;
-        };
-
-        void Add_Edge(int* new_edge, int new_size) {
-			
-            int *data_i = (int *) get_linklist0(enterpoint_node_);
-			size_t pp = getListCount((linklistsizeint*)data_i);
-			int *datal = data_i + 1;
-			
-			if(pp < maxM0_){
-			    for(int i = 0; i < new_size; i++){
-				    datal[i] = new_edge[i]; 
-			    }				
-                setListCount((linklistsizeint*)data_i, (size_t) new_size);
-			}			
-			return;
-        };
-
-        void BoostBaseLayer(tableint ep_id, const void *data_point, size_t ef, int* new_edge, int *new_size) const {
-            VisitedList *vl = visited_list_pool_->getFreeVisitedList();
-            vl_type *visited_array = vl->mass;
-            vl_type visited_array_tag = vl->curV;
-
-			int LL = ef;
-            std::vector<Neighbor> retset(LL + 1);
-            
-            float w = 0.2;			
-            float max_dist = 0;
-			int max_ip = 0;
-			bool cur_sign = 1;
-			bool max_sign = 1;
-			int step = 100;
-						
-			int vecdim = vecdim0_ * level_;	            		
-		   			
-			char* norm_pointer0 = getNormByInternalId(ep_id);
-			float half_square_norm0 = *(float *) norm_pointer0;
-			norm_pointer0 += 4;
-			float ip0 = fstipfunc_(data_point, norm_pointer0, dist_func_param_);
-            float dist0 = half_square_norm0 - ip0;
-		
-            retset[0] = Neighbor(ep_id, dist0, ip0, true);
-            visited_array[ep_id] = visited_array_tag; 
-
-            int k = 0;
-			int l_num = 1;
-
-	
-            while (k < LL) {
-                int nk = LL;
-
-                if (retset[k].flag) {
-                    retset[k].flag = false;
-                    unsigned n = retset[k].id;
-					
-					if(l_num < LL){	
-                        int *data = (int *) get_linklist0(n);
-                        size_t size = getListCount((linklistsizeint*)data);
-						int* datal = data + 1;
-				        int* data2 = getNeighborid(datal, 0);
-						int* data3 = getNeighborid(datal, 1);		
-
-#ifdef USE_SSE
-                        _mm_prefetch((char *) (visited_array + *data2), _MM_HINT_T0);
-                        _mm_prefetch((char *) (visited_array + *data2 + 64), _MM_HINT_T0);
-                        _mm_prefetch(data_level0_memory_ + (*data2) * size_data_per_element_ + offsetData_, _MM_HINT_T0);
-                        _mm_prefetch((char *) (data3), _MM_HINT_T0);						
-						
-						
-#endif
-
-                        for (size_t j = 1; j <= size; j++) {					
-                            //int candidate_id = *(data + j);
-							int candidate_id = *(getNeighborid(datal, j-1));
-							
-							//printf("j = %d, id = %d, eid = %d\n", j, candidate_id, *getExternalLabeLp(candidate_id));
-							int* data4 = getNeighborid(datal, j);
-							             
-#ifdef USE_SSE
-                            _mm_prefetch((char *) (visited_array + *data4), _MM_HINT_T0);
-                            _mm_prefetch(data_level0_memory_ + (*data4) * size_data_per_element_ + offsetData_,
-                            _MM_HINT_T0);////////////
-
-#endif
-                            if (!(visited_array[candidate_id] == visited_array_tag)) {
-                        
-                                visited_array[candidate_id] = visited_array_tag;
-	
-			                    char* norm_pointer = getNormByInternalId(candidate_id);
-			                    float half_square_norm = *(float *) norm_pointer;
-			                    norm_pointer += 4;
-                                float ip_ = fstipfunc_(data_point, norm_pointer, dist_func_param_);								
-                                float dist = half_square_norm - ip_;
-								
-                                if (l_num == LL && dist >= retset[LL - 1].distance ) continue;
-
-                                int r;
-		                        if(l_num == LL){
- 			
-                 		            Neighbor nn2(candidate_id, dist, ip_, true);
-                                    r = InsertIntoPool(retset.data(), LL, nn2);
-		                        }
-	                 	        else {
-                                    Neighbor nn(candidate_id, dist, ip_, true);
-                                    r = InsertIntoPool(retset.data(), l_num, nn);
-			                        l_num++;
-                                }
-                                if (r < nk) {nk = r;}
-						    }							
-					    }
-					}
-					else{
-						float val = retset[LL-1].distance; 
-						float Lbound = retset[k].ip;
-						
-                        int *data = (int *) get_linklist0(n);
-                        size_t size = getListCount((linklistsizeint*)data);
-
-                        int* datal = data + 1;						
-
-						int* data2 = getNeighborid(datal, 0);
-						int* data3 = getNeighborid(datal, 1);
-
-#ifdef USE_SSE
-                        _mm_prefetch((char *) (visited_array + *data2), _MM_HINT_T0);
-                        _mm_prefetch((char *) (visited_array + *data2 + 64), _MM_HINT_T0);
-                        _mm_prefetch(data_level0_memory_ + (*data2) * size_data_per_element_ + offsetData_, _MM_HINT_T0);
-                        _mm_prefetch((char *) (data3), _MM_HINT_T0);
-#endif
-                        for (size_t j = 0; j < size; j++) {
-							int candidate_id = *getNeighborid(datal, j);
-							int* data4 = getNeighborid(datal, j+1);
-
-#ifdef USE_SSE
-                            _mm_prefetch((char *) (visited_array + *data4), _MM_HINT_T0);
-                            _mm_prefetch(data_level0_memory_ + (*data4) * size_data_per_element_ + offsetData_,
-                            _MM_HINT_T0);////////////
-#endif							       
-                            if (!(visited_array[candidate_id] == visited_array_tag)) {
-								visited_array[candidate_id] = visited_array_tag;
-                                //float thres2 = norm_val - val;
-								//if(is_checked[j] == false){continue;}
-								
-			                    char* norm_pointer = getNormByInternalId(candidate_id);
-			                    float half_square_norm = *(float *) norm_pointer;
-			                    norm_pointer += 4;
-                                float ip_ = fstipfunc_(data_point, norm_pointer, dist_func_param_);								
-                                float dist = half_square_norm - ip_;
-								
-                                if (l_num == LL && dist >= retset[LL - 1].distance ) continue;
-
-                                int r;
-		                        if(l_num == LL){
- 			
-                 		            Neighbor nn2(candidate_id, dist, ip_, true);
-                                    r = InsertIntoPool(retset.data(), LL, nn2);
-		                        }
-	                 	        else {
-                                    Neighbor nn(candidate_id, dist, ip_, true);
-                                    r = InsertIntoPool(retset.data(), l_num, nn);
-			                        l_num++;									
-                                }
-                                if (r < nk) {nk = r;}						
-							}												
-					    }				
-					} 					
-				}
-				if (nk <= k)
-                k = nk;
-                else {++k;}
-			}
-			
-            //---------selected neighbors(optional)------
-			for(int i = 0; i < l_num; i++){
-				retset[i].distance = fstdistfunc_(getDataByInternalId(ep_id), getDataByInternalId(retset[i].id), dist_func_param_);			
-			}
-			
-            int *data_i = (int *) get_linklist0(ep_id);
-            size_t size_i = getListCount((linklistsizeint*)data_i);
-			int* datall = data_i + 1;
-			int pp = size_i;
-			
-			printf("before boosting; size = %d\n", pp);
-			
-			for(int i = 0; i < pp; i++){
-				new_edge[i] = datall[i];
-			}
-			
-			for(int i = 0; i < l_num; i++){
-				
-			    int cur_id = retset[i].id;
-                if(cur_id == ep_id) continue;
-				
-					bool good = true;
-					float cur_dist = retset[i].distance;
-					
-					for(int j = 0; j < pp; j++){
-					    if(cur_id == new_edge[j]){good = false; break;}
-					
-						
-					    float edge_dist = fstdistfunc_(getDataByInternalId(cur_id), getDataByInternalId(new_edge[j]), dist_func_param_);	
-						
-						if(edge_dist < cur_dist) {good = false; break;}
-						
-					}                					
-				
-				if(good == true){
-                    new_edge[pp] = cur_id;
-				    pp++;
-					if(pp >= maxM0_) break;
-				}
-				
-			}
-			*new_size = pp;
-			
-			printf("after boosting; size = %d\n", pp);
-						
-            visited_list_pool_->releaseVisitedList(vl);
-		} 		
-
+            vec_level0_memory_ = data_level0_memory_ + index_size;	
+        }		
     };
-
 }

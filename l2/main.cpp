@@ -2,7 +2,7 @@
 
 void PEOs(int efc, int M, int vecsize, int qsize, int dim, int table_size, char* path_q_, char* path_data_, char* path_truth_, int L, float eps, int topk);
 int main(int argc, char** argv) {
-        char* data_path = argv[1];
+    char* data_path = argv[1];
 	char* query_path = argv[2];
 	char* truth_path = argv[3];
 	int vecsize = atoi(argv[4]);
